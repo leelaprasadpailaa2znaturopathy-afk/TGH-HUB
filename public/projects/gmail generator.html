@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TGH | Gmail Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --accent: #10b981;
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f8fafc;
+      --text-dim: #94a3b8;
+      --error: #ef4444;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background glow */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 20%;
+      left: 20%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+      filter: blur(60px);
+      z-index: -1;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 650px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(to right, #fff, var(--text-dim));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      color: var(--text-dim);
+      font-size: 1rem;
+    }
+
+    .stats-badge {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      color: var(--primary-light);
+      padding: 0.4rem 1rem;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 2rem;
+    }
+
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input,
+    select {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+      margin-top: 1rem;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 15px 20px -5px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--glass-bg);
+      color: var(--text-main);
+      border: 1px solid var(--glass-border);
+      margin-top: 10px;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.07);
+      transform: translateY(-2px);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      margin-top: 10px;
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .result-card {
+      margin-top: 2rem;
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px solid rgba(16, 185, 129, 0.1);
+      padding: 1.5rem;
+      border-radius: 16px;
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .result-email {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      color: var(--accent);
+      word-break: break-all;
+      margin-bottom: 1rem;
+      display: block;
+      text-align: center;
+    }
+
+    .history-section {
+      margin-top: 2.5rem;
+      border-top: 1px solid var(--glass-border);
+      padding-top: 2rem;
+      display: none;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    #historyList {
+      list-style: none;
+      max-height: 200px;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+
+    #historyList li {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--glass-border);
+      border-radius: 10px;
+    }
+
+    /* Toast styles */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      display: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Gmail Generator</h1>
+      <p>Generate standardized professional emails or for testing purposes</p>
+    </div>
+
+    <div style="text-align: center;">
+      <div class="stats-badge" id="emailCount">Total Generated: 0</div>
+    </div>
+
+    <div class="input-group">
+      <label for="name">User Name</label>
+      <input type="text" id="name" placeholder="E.g. John Doe">
+    </div>
+
+    <div class="input-group">
+      <label for="mobile">Mobile Number (Last 5 digits used)</label>
+      <input type="tel" id="mobile" placeholder="E.g. 9876543210">
+    </div>
+
+    <div class="input-group">
+      <label for="domainSelect">Email Domain Pattern</label>
+      <select id="domainSelect">
+        <option value="noemail@gmail.com">noemail@gmail.com (Standard)</option>
+        <option value="nogmail@gmail.com">nogmail@gmail.com (Internal)</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary" onclick="generateEmail()">
+      <span>Generate Email ID</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14M12 5l7 7-7 7" />
+      </svg>
+    </button>
+
+    <div class="result-card" id="resultCard">
+      <span class="result-email" id="emailOutput"></span>
+      <button class="btn btn-secondary" onclick="copyEmail()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+        Copy to Clipboard
+      </button>
+    </div>
+
+    <div class="history-section" id="historySection">
+      <div class="history-header">
+        <label>Recent History</label>
+        <input type="text" id="searchInput" placeholder="Search..." onkeyup="filterHistory()"
+          style="width: 150px; padding: 0.4rem; font-size: 0.8rem;">
+      </div>
+      <ul id="historyList"></ul>
+      <div style="display: flex; gap: 10px; margin-top: 1rem;">
+        <button class="btn btn-secondary" style="flex: 1;" onclick="downloadEmails()">Export TXT</button>
+        <button class="btn btn-danger" style="flex: 1;" onclick="clearHistory()">Clear History</button>
+      </div>
+    </div>
+
+    <button class="btn btn-secondary" id="historyToggle" onclick="toggleHistory()" style="margin-top: 2rem;">
+      Show Generated History
+    </button>
+  </div>
+
+  <div id="toast">Copied to clipboard!</div>
+
+  <audio id="dingSound" src="https://www.myinstants.com/media/sounds/notification-sound-7062.mp3"></audio>
+
+  <script>
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }
+
+    function generateEmail() {
+      const nameInput = document.getElementById('name').value.trim().toLowerCase().replace(/\s+/g, '');
+      const mobile = document.getElementById('mobile').value.trim();
+      const domain = document.getElementById('domainSelect').value;
+
+      // Improved validation
+      if (!nameInput || !/^\d{5,}$/.test(mobile)) {
+        showToast('Please enter name and 5+ digit numeric mobile');
+        return;
+      }
+
+      const last5Digits = mobile.slice(-5);
+      const email = `${nameInput}${last5Digits}${domain}`;
+
+      let historyKey = domain.includes("nogmail") ? 'nogmailEmails' : 'noemailEmails';
+      let emailHistory = JSON.parse(sessionStorage.getItem(historyKey)) || [];
+
+      if (emailHistory.includes(email)) {
+        document.getElementById('emailOutput').innerText = email;
+        document.getElementById('resultCard').style.display = 'block';
+        document.getElementById('resultCard').style.background = 'rgba(239, 68, 68, 0.05)';
+        document.getElementById('resultCard').style.borderColor = 'rgba(239, 68, 68, 0.1)';
+        showToast('Duplicate Email Detected');
+        return;
+      }
+
+      emailHistory.push(email);
+      sessionStorage.setItem(historyKey, JSON.stringify(emailHistory));
+
+      document.getElementById('emailOutput').innerText = email;
+      document.getElementById('resultCard').style.display = 'block';
+      document.getElementById('resultCard').style.background = 'rgba(16, 185, 129, 0.05)';
+      document.getElementById('resultCard').style.borderColor = 'rgba(16, 185, 129, 0.1)';
+
+      try { document.getElementById('dingSound').play().catch(e => console.warn('Audio play failed')); } catch (e) { }
+
+      updateCount();
+      if (document.getElementById('historySection').style.display === 'block') {
+        updateHistory(true);
+      }
+    }
+
+    function copyEmail() {
+      const emailText = document.getElementById('emailOutput').innerText;
+      navigator.clipboard.writeText(emailText).then(() => {
+        showToast("Copied to clipboard!");
+      });
+    }
+
+    function updateCount() {
+      const noemailCount = JSON.parse(sessionStorage.getItem('noemailEmails'))?.length || 0;
+      const nogmailCount = JSON.parse(sessionStorage.getItem('nogmailEmails'))?.length || 0;
+      const total = noemailCount + nogmailCount;
+      document.getElementById('emailCount').innerText = `Total Generated: ${total}`;
+    }
+
+    function updateHistory(show = true) {
+      const historyList = document.getElementById('historyList');
+      const noemailEmails = JSON.parse(sessionStorage.getItem('noemailEmails')) || [];
+      const nogmailEmails = JSON.parse(sessionStorage.getItem('nogmailEmails')) || [];
+      const allEmails = [...noemailEmails, ...nogmailEmails].reverse();
+
+      historyList.innerHTML = '';
+      allEmails.forEach(email => {
+        const li = document.createElement('li');
+
+        const span = document.createElement('span');
+        span.textContent = email;
+
+        const btn = document.createElement('button');
+        btn.textContent = 'COPY';
+        btn.style.cssText = 'background:none; border:none; color:var(--primary-light); cursor:pointer; font-size:0.7rem;';
+        btn.onclick = () => {
+          navigator.clipboard.writeText(email);
+          showToast('Copied!');
+        };
+
+        li.appendChild(span);
+        li.appendChild(btn);
+        historyList.appendChild(li);
+      });
+    }
+
+    function filterHistory() {
+      const filter = document.getElementById('searchInput').value.toLowerCase();
+      const items = document.querySelectorAll('#historyList li');
+      items.forEach(li => {
+        li.style.display = li.textContent.toLowerCase().includes(filter) ? '' : 'none';
+      });
+    }
+
+    function toggleHistory() {
+      const historySection = document.getElementById('historySection');
+      const toggleBtn = document.getElementById('historyToggle');
+      const isVisible = historySection.style.display === 'block';
+
+      if (isVisible) {
+        historySection.style.display = 'none';
+        toggleBtn.innerText = 'Show Generated History';
+      } else {
+        updateHistory(true);
+        historySection.style.display = 'block';
+        toggleBtn.innerText = 'Hide Generated History';
+      }
+    }
+
+    function clearHistory() {
+      if (confirm("Clear all history? A backup TXT will be downloaded automatically.")) {
+        downloadEmails();
+        sessionStorage.removeItem('noemailEmails');
+        sessionStorage.removeItem('nogmailEmails');
+        updateCount();
+        updateHistory();
+        showToast("History cleared & backed up");
+      }
+    }
+
+    function downloadEmails() {
+      const noemailList = JSON.parse(sessionStorage.getItem('noemailEmails')) || [];
+      const nogmailList = JSON.parse(sessionStorage.getItem('nogmailEmails')) || [];
+
+      if (noemailList.length > 0) downloadTextFile(noemailList.join('\n'), 'noemail_emails.txt');
+      if (nogmailList.length > 0) downloadTextFile(nogmailList.join('\n'), 'nogmail_emails.txt');
+    }
+
+    function downloadTextFile(text, filename) {
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = url;
+      link.click();
+      // Revoke to avoid memory leaks
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+    }
+
+    window.onload = updateCount;
+  </script>
+</body>
+
+</html>

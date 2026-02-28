@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TGH | PDF Merger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --accent: #10b981;
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f8fafc;
+      --text-dim: #94a3b8;
+      --error: #ef4444;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background glow */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 20%;
+      left: 20%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+      filter: blur(60px);
+      z-index: -1;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 3rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.25rem;
+      font-weight: 800;
+      background: linear-gradient(to right, #fff, var(--text-dim));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      color: var(--text-dim);
+      font-size: 0.95rem;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--glass-border);
+      border-radius: 16px;
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .upload-zone:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .upload-zone svg {
+      color: var(--primary-light);
+      margin-bottom: 1rem;
+    }
+
+    .upload-zone p {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .upload-zone span {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+
+    #pdfInput {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 1.1rem;
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+      margin-top: 1rem;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: var(--text-dim);
+    }
+
+    .file-list {
+      margin-bottom: 2rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .file-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+
+    .file-item svg {
+      color: var(--danger);
+      flex-shrink: 0;
+    }
+
+    #status {
+      text-align: center;
+      padding: 1rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .status-processing {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary-light);
+    }
+
+    .status-success {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent);
+    }
+
+    .status-error {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error);
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--glass-border);
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>PDF Merger</h1>
+      <p>Combine multiple PDF documents into a single professional file</p>
+    </div>
+
+    <div class="upload-zone">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M7 16a4 4 0 0 1-.88-7.903A5 5 0 1 1 15.9 6L16 6a5 5 0 0 1 1 9.9M15 13l-3-3-3 3M12 10v9" />
+      </svg>
+      <p>Click or drag PDF files here</p>
+      <span>Supports multiple selection</span>
+      <input type="file" id="pdfInput" multiple accept="application/pdf">
+    </div>
+
+    <div id="fileList" class="file-list"></div>
+
+    <button class="btn" id="mergeBtn" onclick="mergePDFs()" disabled>
+      <span>Merge and Download PDF</span>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+      </svg>
+    </button>
+
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const input = document.getElementById('pdfInput');
+    const fileList = document.getElementById('fileList');
+    const mergeBtn = document.getElementById('mergeBtn');
+    const status = document.getElementById('status');
+
+    input.addEventListener('change', () => {
+      fileList.innerHTML = '';
+      status.style.display = 'none';
+
+      if (input.files.length > 0) {
+        Array.from(input.files).forEach(file => {
+          const div = document.createElement('div');
+          div.className = 'file-item';
+
+          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          svg.setAttribute("width", "18");
+          svg.setAttribute("height", "18");
+          svg.setAttribute("viewBox", "0 0 24 24");
+          svg.setAttribute("fill", "none");
+          svg.setAttribute("stroke", "currentColor");
+          svg.setAttribute("stroke-width", "2");
+          svg.innerHTML = '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>';
+
+          const nameSpan = document.createElement('span');
+          nameSpan.style.flex = '1';
+          nameSpan.style.overflow = 'hidden';
+          nameSpan.style.textOverflow = 'ellipsis';
+          nameSpan.style.whiteSpace = 'nowrap';
+          nameSpan.textContent = file.name;
+
+          const sizeSpan = document.createElement('span');
+          sizeSpan.style.color = 'var(--text-dim)';
+          sizeSpan.style.fontSize = '0.75rem';
+          sizeSpan.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+
+          div.appendChild(svg);
+          div.appendChild(nameSpan);
+          div.appendChild(sizeSpan);
+          fileList.appendChild(div);
+        });
+        mergeBtn.disabled = input.files.length < 2;
+      } else {
+        mergeBtn.disabled = true;
+      }
+    });
+
+    let currentPdfUrl = null;
+
+    async function mergePDFs() {
+      if (input.files.length < 2) return;
+
+      mergeBtn.disabled = true;
+      status.style.display = 'block';
+      status.className = 'status-processing';
+      status.textContent = 'Merging documents...';
+
+      try {
+        const mergedPdf = await PDFLib.PDFDocument.create();
+
+        for (const file of input.files) {
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+          const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+          copiedPages.forEach(page => mergedPdf.addPage(page));
+        }
+
+        const mergedBytes = await mergedPdf.save();
+        const blob = new Blob([mergedBytes], { type: 'application/pdf' });
+
+        if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+        currentPdfUrl = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = currentPdfUrl;
+        link.download = `TGH_Merged_${new Date().getTime()}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        status.className = 'status-success';
+        status.textContent = 'Merge successful! Your file is downloading.';
+
+        setTimeout(() => {
+          input.value = '';
+          fileList.innerHTML = '';
+          mergeBtn.disabled = true;
+          if (currentPdfUrl) {
+            URL.revokeObjectURL(currentPdfUrl);
+            currentPdfUrl = null;
+          }
+        }, 3000);
+
+      } catch (err) {
+        console.error(err);
+        status.className = 'status-error';
+        status.textContent = 'Error: ' + err.message;
+        mergeBtn.disabled = false;
+      }
+    }
+  </script>
+</body>
+
+</html>

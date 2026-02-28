@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TGH Tool Center | Administrative Suite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.5);
+            --accent: #10b981;
+            --bg-gradient: radial-gradient(circle at 20% 20%, #0f172a 0%, #020617 100%);
+            --sidebar-bg: rgba(2, 6, 23, 0.9);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --sidebar-width: 280px;
+            --card-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+            --panel-bg: rgba(15, 23, 42, 0.6);
+        }
+
+        [data-theme="light"] {
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.2);
+            --accent: #059669;
+            --bg-gradient: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            --sidebar-bg: rgba(255, 255, 255, 0.95);
+            --glass-bg: rgba(0, 0, 0, 0.03);
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+            --panel-bg: rgba(255, 255, 255, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* Gradient Animation */
+        body::before {
+            content: "";
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, var(--primary-glow) 0%, transparent 40%);
+            animation: rotate 25s linear infinite;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Sidebar Styles */
+        aside {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid var(--glass-border);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo-container {
+            padding: 0 1.5rem 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-container img {
+            height: 32px;
+            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.5));
+        }
+
+        .logo-container h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, var(--text-main), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .nav-links {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 0.75rem;
+        }
+
+        .nav-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-group-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            padding: 0 0.75rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            transform: translateX(4px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(to right, var(--primary-glow), transparent);
+            color: #fff;
+            border-left: 4px solid var(--primary);
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-item .icon {
+            font-size: 1.25rem;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item.active .icon {
+            background: var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow);
+            color: #fff;
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: rgba(15, 23, 42, 0.4);
+            position: relative;
+        }
+
+        header {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            background: rgba(15, 23, 42, 0.2);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 5;
+        }
+
+        .header-title {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .iframe-wrapper {
+            flex: 1;
+            padding: 1rem;
+            background: transparent;
+            position: relative;
+        }
+
+        #tool-container {
+            width: 100%;
+            height: 100%;
+            border: none;
+            box-shadow: var(--card-shadow);
+            transition: all 0.4s ease;
+        }
+
+        .welcome-screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            z-index: 1;
+        }
+
+        .welcome-screen h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-screen p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .grid-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 3rem;
+        }
+
+        .tool-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 1.50rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .tool-card:hover {
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateY(-5px);
+            border-color: var(--primary-light);
+            box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.3);
+        }
+
+        .tool-card .icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .tool-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        .tool-card p {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            aside {
+                width: 0;
+                padding: 0;
+                overflow: hidden;
+                position: absolute;
+            }
+
+            .sidebar-open aside {
+                width: 280px;
+                padding: 2rem 0;
+            }
+        }
+
+        #loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--glass-border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .theme-toggle {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--glass-border);
+            transform: scale(1.05);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 1.25rem;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 16px var(--primary-glow);
+        }
+
+        .stat-info h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+
+        .stat-info p {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        #tool-container {
+            border-radius: 20px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+        }
+
+        [data-theme="dark"] .tool-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+        }
+
+        [data-theme="dark"] .tool-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+    </style>
+</head>
+
+<body class="sidebar-open">
+
+    <aside>
+        <div class="logo-container">
+            <img src="https://www.thegoodhealth.co.in/web/image/website/1/logo/www.thegoodhealth.co.in?unique=7145bcf"
+                alt="TGH Logo">
+            <h1>TGH HUB</h1>
+        </div>
+
+        <nav class="nav-links">
+            <div class="nav-group">
+                <div class="nav-group-title">Logistics & Scanning</div>
+                <div class="nav-item" onclick="loadTool('Projects/AWb scanning amazon.html', 'AWB Scanner', this)">
+                    <div class="icon">📦</div>
+                    <span>Amazon AWB Scanner</span>
+                </div>
+                <div class="nav-item"
+                    onclick="loadTool('Projects/shipping-label-extractor/index.html', 'Label Extractor', this)">
+                    <div class="icon">🏷️</div>
+                    <span>Shipping Label Extractor</span>
+                </div>
+                <div class="nav-item" onclick="loadTool('Projects/Barcode Essentials.html', 'Barcode Tools', this)">
+                    <div class="icon">║█</div>
+                    <span>Barcode Essentials</span>
+                </div>
+                <div class="nav-item" onclick="loadTool('Projects/AWb scanning amazon.html', 'Multi-Scanner', this)">
+                    <div class="icon">🔍</div>
+                    <span>AWB Multi-Scanner</span>
+                </div>
+                <div class="nav-item" onclick="loadTool('Projects/Master Order Matcher.html', 'Order Matcher', this)">
+                    <div class="icon">⚖️</div>
+                    <span>Master Order Matcher</span>
+                </div>
+                <div class="nav-item" onclick="loadTool('Projects/AWB Data Matcher.html', 'AWB Matcher', this)">
+                    <div class="icon">✈️</div>
+                    <span>AWB Data Matcher</span>
+                </div>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Data & Validation</div>
+                <div class="nav-item" onclick="loadTool('Projects/Address Corrector.html', 'Address Corrector', this)">
+                    <div class="icon">📍</div>
+                    <span>Address Corrector</span>
+                </div>
+
+
+
+                <div class="nav-item"
+                    onclick="loadTool('Projects/Discount-and-Royalty.html', 'Discount & Royalty', this)">
+                    <div class="icon">📊</div>
+                    <span>Discount & Royalty</span>
+                </div>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Utilities</div>
+                <div class="nav-item" onclick="loadTool('Projects/TGH_PDF Merger.html', 'PDF Merger', this)">
+                    <div class="icon">📑</div>
+                    <span>PDF Merger</span>
+                </div>
+                <div class="nav-item"
+                    onclick="loadTool('Projects/Merge Multiple Images • Single Page.html', 'Image Merger', this)">
+                    <div class="icon">🖼️</div>
+                    <span>Image PDF Merger</span>
+                </div>
+                <div class="nav-item" onclick="loadTool('Projects/gmail generator.html', 'Gmail Gen', this)">
+                    <div class="icon">📧</div>
+                    <span>Gmail Generator</span>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <main>
+        <header>
+            <div class="header-title" id="current-tool-title">Operational Dashboard</div>
+            <div class="header-actions" style="display: flex; gap: 10px;">
+                <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙</button>
+                <button onclick="window.location.reload()"
+                    style="background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; transition: 0.2s;">
+                    Refresh Center
+                </button>
+            </div>
+        </header>
+
+        <div class="iframe-wrapper">
+            <div id="loader">
+                <div class="spinner"></div>
+            </div>
+
+            <div id="welcome-screen" class="welcome-screen">
+                <div class="welcome-header" style="margin-bottom: 3rem;">
+                    <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">Welcome to TGH Command Center</h1>
+                    <p style="margin: 0 auto; opacity: 0.8;">Your integrated suite for logistics optimization and data
+                        management.</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-info">
+                            <h4>Status</h4>
+                            <p>System Online</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🛡️</div>
+                        <div class="stat-info">
+                            <h4>Security</h4>
+                            <p>Verified</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-info">
+                            <h4>Speed</h4>
+                            <p>Optimized</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-preview">
+                    <div class="tool-card"
+                        onclick="loadTool('Projects/shipping-label-extractor/index.html', 'Label Extractor', document.querySelectorAll('.nav-item')[1])">
+                        <span class="icon">🏷️</span>
+                        <h3>Label Extractor</h3>
+                        <p>Specialized extraction for shipping labels</p>
+                    </div>
+                    <div class="tool-card"
+                        onclick="loadTool('Projects/AWb scanning amazon.html', 'AWB Scanner', document.querySelector('.nav-item'))">
+                        <span class="icon">📦</span>
+                        <h3>AWB Scanning</h3>
+                        <p>Process and extract Amazon airway bills</p>
+                    </div>
+                    <div class="tool-card"
+                        onclick="loadTool('Projects/Address Corrector.html', 'Address Corrector', document.querySelectorAll('.nav-item')[4])">
+                        <span class="icon">📍</span>
+                        <h3>Address Correction</h3>
+                        <p>Standardize and verify shipping addresses</p>
+                    </div>
+                </div>
+            </div>
+
+            <iframe id="tool-container" src="about:blank" style="display: none;"></iframe>
+        </div>
+    </main>
+
+    <script>
+        // Theme Management
+        function toggleTheme() {
+            const body = document.documentElement;
+            const btn = document.getElementById('theme-btn');
+            const currentTheme = body.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            body.setAttribute('data-theme', newTheme);
+            btn.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Initialize theme
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.getElementById('theme-btn').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+        })();
+
+        function loadTool(url, title, element) {
+            const iframe = document.getElementById('tool-container');
+            const welcome = document.getElementById('welcome-screen');
+            const loader = document.getElementById('loader');
+            const titleEl = document.getElementById('current-tool-title');
+
+            // UI Updates
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if (element) element.classList.add('active');
+
+            titleEl.textContent = title;
+            welcome.style.display = 'none';
+            loader.style.display = 'block';
+            iframe.style.display = 'block';
+
+            iframe.src = url;
+
+            iframe.onload = () => {
+                loader.style.display = 'none';
+                // Success animation
+                iframe.style.opacity = '1';
+                iframe.style.transform = 'scale(1)';
+            };
+
+            iframe.style.opacity = '0.95';
+            iframe.style.transform = 'scale(0.99)';
+        }
+
+        // Handle mobile menu if needed
+        function toggleSidebar() {
+            document.body.classList.toggle('sidebar-open');
+        }
+    </script>
+</body>
+
+</html>

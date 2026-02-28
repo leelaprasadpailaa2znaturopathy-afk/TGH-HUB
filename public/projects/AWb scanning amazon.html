@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TGH | AWB Multi-Scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --accent: #10b981;
+      --danger: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #090e1a 0%, #1e1b4b 100%);
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f8fafc;
+      --text-dim: #94a3b8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.75rem;
+      font-weight: 800;
+      background: linear-gradient(to right, #fff, var(--primary-light));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--glass-border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.3s;
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .upload-zone:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .upload-zone svg {
+      color: var(--primary-light);
+      margin-bottom: 1rem;
+    }
+
+    #fileInput {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 1rem;
+      color: white;
+      font-size: 1rem;
+      resize: none;
+      margin-bottom: 2rem;
+      outline: none;
+    }
+
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .btn {
+      padding: 0.8rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 0.95rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+    }
+
+    .btn-ghost {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .results-table-container {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--glass-border);
+      margin-top: 2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    th {
+      padding: 1rem;
+      text-align: left;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--glass-border);
+      font-size: 0.9rem;
+    }
+
+    .status-pill {
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-found {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent);
+    }
+
+    .status-missing {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+    }
+
+    .copy-link {
+      color: var(--primary-light);
+      cursor: pointer;
+      font-size: 0.8rem;
+      margin-left: 10px;
+      text-decoration: underline;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--glass-border);
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>AWB Multi-Scanner</h1>
+      <p style="color: var(--text-dim)">Batch extract source identifiers from tracking numbers</p>
+    </div>
+
+    <div class="glass-card">
+      <div class="upload-zone" id="dropZone">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+        </svg>
+        <div id="uploadText">Drop Master Excel or Click to Browse</div>
+        <div id="fileStatus" style="color: var(--accent); margin-top:0.5rem; font-weight:600;"></div>
+        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv">
+      </div>
+
+      <label>Paste AWB List</label>
+      <textarea id="awbInput" placeholder="Enter one AWB per line..."></textarea>
+
+      <div class="actions-grid">
+        <button class="btn btn-primary" onclick="lookupAwbs()">
+          <span>Run Scanner</span>
+        </button>
+        <button class="btn btn-ghost" id="exportBtn" style="display:none" onclick="exportResults()">Download Data
+          (.xlsx)</button>
+        <button class="btn btn-ghost" onclick="downloadSample()">Sample Format</button>
+        <button class="btn btn-ghost" onclick="clearScanner()">Clear All</button>
+      </div>
+    </div>
+
+    <div id="resultsArea" style="display:none">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h3 id="resultTitle" style="font-family:'Outfit'">Scan Results</h3>
+        <button class="btn btn-ghost" style="padding: 0.4rem 1rem; font-size:0.8rem" onclick="copyAllIds()">Copy All
+          IDs</button>
+      </div>
+      <div class="results-table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>AWB Number</th>
+              <th>Status</th>
+              <th>Source Identifier</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let masterData = [];
+    let scanResults = [];
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const data = new Uint8Array(event.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        masterData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        document.getElementById('fileStatus').textContent = `✓ ${masterData.length} records loaded`;
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    const AWB_HEADERS = ['AWB Code', 'AWB', 'AWB_Number', 'Tracking ID', 'Tracking Number', 'Airway Bill', 'AWB No'];
+    const ORDER_HEADERS = ['Order ID', 'Order Number', 'Order_ID', 'Reference', 'Source ID', 'Amazon Order ID'];
+
+    function getColumnValue(row, possibleHeaders) {
+      const entry = Object.entries(row).find(([key]) =>
+        possibleHeaders.some(h => key.toLowerCase().includes(h.toLowerCase()))
+      );
+      return entry ? entry[1] : null;
+    }
+
+    function lookupAwbs() {
+      if (!masterData.length) return alert('Please upload master data first');
+      const input = document.getElementById('awbInput').value.trim();
+      if (!input) return alert('Enter AWB numbers');
+
+      const list = input.split(/\n/).map(s => s.trim()).filter(s => s);
+      const body = document.getElementById('resultsBody');
+      body.innerHTML = '';
+      scanResults = [];
+
+      list.forEach(awb => {
+        const match = masterData.find(row => {
+          const val = (getColumnValue(row, AWB_HEADERS) || Object.values(row)[0])?.toString().trim();
+          return val === awb;
+        });
+
+        let sourceId = 'N/A';
+        if (match) {
+          const rawOrder = (getColumnValue(match, ORDER_HEADERS) || '').toString();
+          // Try to extract S-prefix ID or take full order ID
+          const extracted = rawOrder.match(/S[^#\s]+/)?.[0];
+          sourceId = extracted || rawOrder || 'N/A';
+        }
+
+        scanResults.push({ awb, sourceId, found: !!match });
+
+        const tr = document.createElement('tr');
+
+        const tdAwb = document.createElement('td');
+        tdAwb.textContent = awb;
+
+        const tdStatus = document.createElement('td');
+        const statusSpan = document.createElement('span');
+        statusSpan.className = `status-pill ${match ? 'status-found' : 'status-missing'}`;
+        statusSpan.textContent = match ? 'FOUND' : 'MISSING';
+        tdStatus.appendChild(statusSpan);
+
+        const tdSource = document.createElement('td');
+        const code = document.createElement('code');
+        code.textContent = sourceId;
+        tdSource.appendChild(code);
+
+        if (match && sourceId !== 'N/A') {
+          const copyLink = document.createElement('span');
+          copyLink.className = 'copy-link';
+          copyLink.textContent = 'Copy';
+          copyLink.onclick = () => copyText(sourceId);
+          tdSource.appendChild(copyLink);
+        }
+
+        tr.appendChild(tdAwb);
+        tr.appendChild(tdStatus);
+        tr.appendChild(tdSource);
+        body.appendChild(tr);
+      });
+
+      document.getElementById('resultsArea').style.display = 'block';
+      document.getElementById('exportBtn').style.display = 'flex';
+    }
+
+    function downloadSample() {
+      const sample = [
+        { "AWB Number": "123456789", "Order ID": "S12345#AMZ" },
+        { "AWB Number": "987654321", "Order ID": "S67890#AMZ" }
+      ];
+      const ws = XLSX.utils.json_to_sheet(sample);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Sample Format");
+      XLSX.writeFile(wb, "AWB_Scanner_Sample.xlsx");
+    }
+
+    function copyText(txt) {
+      if (txt === 'N/A') return;
+      navigator.clipboard.writeText(txt).then(() => {
+        // Simple visual feedback
+      });
+    }
+
+    function copyAllIds() {
+      const ids = scanResults.filter(r => r.found && r.sourceId !== 'N/A').map(r => r.sourceId).join('\n');
+      if (!ids) return alert('No valid IDs found to copy');
+      navigator.clipboard.writeText(ids);
+      alert('Copied all found IDs');
+    }
+
+    function exportResults() {
+      const ws = XLSX.utils.json_to_sheet(scanResults.map(r => ({
+        "AWB Number": r.awb,
+        "Status": r.found ? "Found" : "Missing",
+        "Source ID": r.sourceId
+      })));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Scan Results");
+      XLSX.writeFile(wb, `AWB_Scan_${Date.now()}.xlsx`);
+    }
+
+    function clearScanner() {
+      document.getElementById('fileInput').value = '';
+      document.getElementById('awbInput').value = '';
+      document.getElementById('resultsArea').style.display = 'none';
+      document.getElementById('fileStatus').textContent = '';
+      document.getElementById('exportBtn').style.display = 'none';
+      masterData = [];
+    }
+  </script>
+</body>
+
+</html>

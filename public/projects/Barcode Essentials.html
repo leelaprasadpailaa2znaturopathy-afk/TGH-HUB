@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>TGH Barcode & Expiration Tools</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --bg: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --accent: #10b981;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      z-index: 1;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(to right, #818cf8, #34d399);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 2rem;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+    }
+
+    nav button {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    nav button:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    nav button.active-nav {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: #fff;
+    }
+
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: white;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    button.primary {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+
+    button.primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+    }
+
+    .result-box {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      color: var(--accent);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 12px;
+      text-align: left;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    td {
+      padding: 12px;
+      border-top: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .download-btn {
+      display: none;
+      text-decoration: none;
+      background: var(--accent);
+      color: white;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      text-align: center;
+      margin-top: 1.5rem;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+
+    .download-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Barcode Essentials</h1>
+  </header>
+
+  <div class="container">
+    <nav>
+      <button onclick="showSection('expiration', this)" class="active-nav">Expiration Calc</button>
+      <button onclick="showSection('days', this)">Days to Months</button>
+      <button onclick="showSection('months', this)">Months to Days</button>
+    </nav>
+
+    <div class="glass-card">
+      <!-- Expiration Date Calculator -->
+      <div id="expiration" class="section active">
+        <h2>Expiration Date Calculator</h2>
+        <div class="input-group">
+          <label>Manufacturing Date (MFD):</label>
+          <input type="date" id="mfd">
+        </div>
+        <div class="input-group">
+          <label>Shelf Life (total days):</label>
+          <input type="number" id="shelf-life" min="1" placeholder="e.g. 730">
+        </div>
+        <div class="input-group">
+          <label>Output Date Format:</label>
+          <select id="date-format">
+            <option value="DMY">DD-MM-YYYY</option>
+            <option value="YMD">YYYY-MM-DD</option>
+          </select>
+        </div>
+        <button class="primary" onclick="calculateExpiration()">Calculate Expiration</button>
+        <div id="result" class="result-box" style="display:none;"></div>
+      </div>
+
+      <!-- Days to Months Converter -->
+      <div id="days" class="section">
+        <h2>Days to Months Converter</h2>
+        <div class="input-group">
+          <label>Enter days (comma or newline separated):</label>
+          <textarea id="daysInput" placeholder="30, 60, 90..."></textarea>
+        </div>
+        <button class="primary" onclick="convertDays()">Convert to Months</button>
+        <a id="download-days" class="download-btn" download="days_to_months.xlsx">Download Excel Report</a>
+        <div id="outputTable" class="output"></div>
+      </div>
+
+      <!-- Months to Days Converter -->
+      <div id="months" class="section">
+        <h2>Months to Days Converter</h2>
+        <div class="input-group">
+          <label>Enter months (comma or newline separated):</label>
+          <textarea id="monthsInput" placeholder="1, 6, 12, 24..."></textarea>
+        </div>
+        <button class="primary" onclick="convertMonths()">Convert to Days</button>
+        <a id="download-months" class="download-btn" download="months_to_days.xlsx">Download Excel Report</a>
+        <div id="monthsOutputTable" class="output"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    function showSection(id, btn) {
+      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('nav button').forEach(button => button.classList.remove('active-nav'));
+      btn.classList.add('active-nav');
+    }
+
+    function calculateExpiration() {
+      const mfd = document.getElementById("mfd").value;
+      const shelfLife = document.getElementById("shelf-life").value;
+      const format = document.getElementById("date-format").value;
+      const resultDiv = document.getElementById("result");
+
+      if (!mfd || !shelfLife) {
+        alert("Please fill all fields!");
+        return;
+      }
+
+      const mfdDate = new Date(mfd);
+      const expiration = new Date(mfdDate);
+      expiration.setDate(expiration.getDate() + parseInt(shelfLife));
+
+      let formattedDate = '';
+      if (format === "DMY") {
+        formattedDate = `${String(expiration.getDate()).padStart(2, '0')}-${String(expiration.getMonth() + 1).padStart(2, '0')}-${expiration.getFullYear()}`;
+      } else {
+        formattedDate = `${expiration.getFullYear()}-${String(expiration.getMonth() + 1).padStart(2, '0')}-${String(expiration.getDate()).padStart(2, '0')}`;
+      }
+
+      resultDiv.style.display = "block";
+      resultDiv.textContent = `Expiration Date: ${formattedDate}`;
+    }
+
+    let currentDaysUrl = null;
+    let currentMonthsUrl = null;
+
+    function convertDays() {
+      const input = document.getElementById('daysInput').value;
+      const daysArray = input.split(/\n|,/).map(x => x.trim()).filter(x => x);
+
+      if (daysArray.length === 0) {
+        alert("Please enter some days!");
+        return;
+      }
+
+      const container = document.getElementById('outputTable');
+      container.innerHTML = '';
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      thead.innerHTML = '<tr><th>Days</th><th>Months (Approx.)</th></tr>';
+      table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+
+      const sheetData = [];
+
+      daysArray.forEach(day => {
+        const months = (parseInt(day) / 30).toFixed(1);
+        const tr = document.createElement('tr');
+        const tdDay = document.createElement('td');
+        tdDay.textContent = day;
+        const tdMonths = document.createElement('td');
+        tdMonths.textContent = `${months} months`;
+        tr.appendChild(tdDay);
+        tr.appendChild(tdMonths);
+        tbody.appendChild(tr);
+        sheetData.push({ Days: day, Months: months });
+      });
+
+      table.appendChild(tbody);
+      container.appendChild(table);
+
+      const ws = XLSX.utils.json_to_sheet(sheetData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Days to Months');
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/octet-stream' });
+
+      if (currentDaysUrl) URL.revokeObjectURL(currentDaysUrl);
+      currentDaysUrl = URL.createObjectURL(blob);
+
+      const link = document.getElementById('download-days');
+      link.href = currentDaysUrl;
+      link.style.display = 'block';
+    }
+
+    function convertMonths() {
+      const input = document.getElementById('monthsInput').value;
+      const monthsArray = input.split(/\n|,/).map(x => x.trim()).filter(x => x);
+
+      if (monthsArray.length === 0) {
+        alert("Please enter some months!");
+        return;
+      }
+
+      const container = document.getElementById('monthsOutputTable');
+      container.innerHTML = '';
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      thead.innerHTML = '<tr><th>Months</th><th>Days (Approx.)</th></tr>';
+      table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+
+      const sheetData = [];
+
+      monthsArray.forEach(month => {
+        const days = (parseFloat(month) * 30).toFixed(0);
+        const tr = document.createElement('tr');
+        const tdMonth = document.createElement('td');
+        tdMonth.textContent = month;
+        const tdDays = document.createElement('td');
+        tdDays.textContent = `${days} days`;
+        tr.appendChild(tdMonth);
+        tr.appendChild(tdDays);
+        tbody.appendChild(tr);
+        sheetData.push({ Months: month, Days: days });
+      });
+
+      table.appendChild(tbody);
+      container.appendChild(table);
+
+      const ws = XLSX.utils.json_to_sheet(sheetData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Months to Days');
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/octet-stream' });
+
+      if (currentMonthsUrl) URL.revokeObjectURL(currentMonthsUrl);
+      currentMonthsUrl = URL.createObjectURL(blob);
+
+      const link = document.getElementById('download-months');
+      link.href = currentMonthsUrl;
+      link.style.display = 'block';
+    }
+
+    // Auto-convert on Enter for convenience
+    document.getElementById('daysInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.ctrlKey) convertDays();
+    });
+    document.getElementById('monthsInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.ctrlKey) convertMonths();
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TGH Hub | Discount & Royalty Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-light: #a78bfa;
+            --accent: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-gradient: radial-gradient(circle at 20% 20%, #0f172a 0%, #020617 100%);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, var(--primary-light));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .type-selector {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .type-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-dim);
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .type-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+        }
+
+        .type-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .upload-section {
+            border: 2px dashed var(--glass-border);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .upload-section:hover {
+            border-color: var(--primary);
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .upload-section svg {
+            color: var(--primary-light);
+            margin-bottom: 1rem;
+        }
+
+        .file-input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #4b5563;
+        }
+
+        .btn-ghost {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+        }
+
+        .results-container {
+            margin-top: 2rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .table-wrapper {
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.3);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: left;
+            border-bottom: 2px solid var(--glass-border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .badge-used {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .badge-unused {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent);
+        }
+
+        .loader {
+            display: none;
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--glass-border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .search-box {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            color: white;
+            outline: none;
+            width: 250px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Discount & Royalty Hub</h1>
+            <p style="color: var(--text-dim)">Specialized data extraction for internal company financial tracking</p>
+        </div>
+
+        <div class="type-selector">
+            <button class="type-btn active" onclick="setMode('giftcard', this)">
+                <span>🎁</span> Customer Gift Card
+            </button>
+            <button class="type-btn" onclick="setMode('festival', this)">
+                <span>🎉</span> Festival Special Offers
+            </button>
+            <button class="type-btn" onclick="setMode('luckydraw', this)">
+                <span>🎟️</span> Lucky Draw Vouchers
+            </button>
+        </div>
+
+        <div class="glass-card">
+            <div class="upload-section" id="dropZone">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;" id="modeTitle">Customer Gift
+                    Card Processor</div>
+                <p class="zone-desc" id="modeDesc">Upload Excel sheet containing Gift Card data for formatting</p>
+                <input type="file" class="file-input" id="fileInput" accept=".xlsx, .xls">
+                <div id="fileStatus" style="color: var(--accent); margin-top: 1rem; font-weight: 600;"></div>
+            </div>
+        </div>
+
+        <div id="loader" class="loader">
+            <div class="spinner"></div>
+            <p style="margin-top: 1rem; color: var(--text-dim)">Formatting internal records...</p>
+        </div>
+
+        <div id="resultsArea" class="results-container" style="display: none;">
+            <div class="results-header">
+                <h3 id="tableTitle" style="font-family: 'Outfit'; font-size: 1.25rem;">Extracted Data</h3>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="text" class="search-box" id="searchInput" placeholder="Search records...">
+                    <button class="btn btn-ghost" onclick="copyData()" id="copyBtn">📋 Copy Data</button>
+                    <button class="btn btn-primary" onclick="exportData()">Export to Excel</button>
+                    <button class="btn btn-ghost" onclick="resetAll()">Clear</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="resultsTable">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'giftcard';
+        let processedData = [];
+
+        const modes = {
+            giftcard: {
+                title: "Customer Gift Card Processor",
+                desc: "Extracts: S.No, Issued Date, Expiry Date, Created Name, Issued, Used/Unused, etc.",
+                headers: ["S.No", "Issued Date", "Expiry Date", "Created Name", "Issued", "Used/ Unused", "Amount", "Used Date", "Sale Order", "Coupon Code"]
+            },
+            festival: {
+                title: "Festival/ Special Offers Processor",
+                desc: "Extracts: S.No, Issued Date, Expiry Date, Created For, and Coupon Count.",
+                headers: ["S.No", "Issued Date", "Expiry Date", "Created For", "Coupon Count"]
+            },
+            luckydraw: {
+                title: "Lucky Draw Vouchers",
+                desc: "Extracts: S.No, Issued Date, Expiry Date, Created For, Issued, Amount, and Used/Unused status.",
+                headers: ["S.No", "Issued Date", "Expiry Date", "Created For", "Issued", "Amount", "Used/Unused"]
+            }
+        };
+
+        function setMode(mode, btn) {
+            currentMode = mode;
+            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            document.getElementById('modeTitle').textContent = modes[mode].title;
+            document.getElementById('modeDesc').textContent = modes[mode].desc;
+
+            resetAll();
+        }
+
+        const fileInput = document.getElementById('fileInput');
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        function handleFile(file) {
+            if (!file) return;
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('resultsArea').style.display = 'none';
+            document.getElementById('fileStatus').textContent = `File Loaded: ${file.name}`;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const ws = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+
+                if (currentMode === 'giftcard') {
+                    processGiftCard(json);
+                } else if (currentMode === 'festival') {
+                    processFestival(json);
+                } else if (currentMode === 'luckydraw') {
+                    processLuckyDraw(json);
+                } else {
+                    processGeneric(json, modes[currentMode].headers);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processGiftCard(rows) {
+            if (rows.length < 1) return;
+
+            const colMap = {};
+            const requiredSynonyms = {
+                program: ['program name', 'created name', 'offer'],
+                issued_count: ['issued', 'coupon/history/issued', 'count'],
+                used_flag: ['used/ unused', 'coupon/history/used', 'status'],
+                issued_date: ['issued date', 'created on', 'date'],
+                expiry_date: ['expiry date', 'end date', 'valid to'],
+                description: ['description', 'coupon/history/description', 'remarks'],
+                card: ['card', 'coupon/history/card', 'coupon code'],
+                amount: ['amount', 'rewards/description', 'value'],
+                used_date: ['used date', 'redemption date']
+            };
+
+            Object.keys(requiredSynonyms).forEach(key => {
+                const idx = rows[0].findIndex(h =>
+                    requiredSynonyms[key].some(syn => h.toLowerCase().trim().includes(syn))
+                );
+                colMap[key] = idx;
+            });
+
+            processedData = [];
+            let sNo = 1;
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length === 0) continue;
+
+                const programName = colMap.program !== -1 ? row[colMap.program] : "";
+                if (!programName) continue;
+
+                let issuedRaw = colMap.issued_count !== -1 ? row[colMap.issued_count] : "0";
+                if (issuedRaw === "" || isNaN(issuedRaw) || issuedRaw < 1) issuedRaw = "0";
+
+                const usedFlagRaw = colMap.used_flag !== -1 ? row[colMap.used_flag] : "";
+                const issuedDate = formatDate(colMap.issued_date !== -1 ? row[colMap.issued_date] : "");
+                const expiryDate = formatDate(colMap.expiry_date !== -1 ? row[colMap.expiry_date] : "");
+                const usedDate = formatDate(colMap.used_date !== -1 ? row[colMap.used_date] : "") || issuedDate;
+
+                const desc = colMap.description !== -1 ? row[colMap.description] : "";
+                const orderMatch = desc.toString().match(/Order\s+S\d+/gi);
+                const saleOrder = orderMatch ? orderMatch.join(', ') : "";
+
+                const cardInfo = colMap.card !== -1 ? row[colMap.card] : "";
+                const codeMatch = cardInfo.toString().match(/[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}/i);
+                const couponCode = codeMatch ? codeMatch[0] : cardInfo;
+
+                let usedStatus = "";
+                if (usedFlagRaw === 1 || usedFlagRaw.toString().toLowerCase().includes('used')) usedStatus = "Used";
+                else if (usedFlagRaw === 0 || usedFlagRaw.toString().toLowerCase().includes('unused')) usedStatus = "Unused";
+                else usedStatus = usedFlagRaw;
+
+                processedData.push({
+                    "S.No": sNo++,
+                    "Issued Date": issuedDate,
+                    "Expiry Date": expiryDate,
+                    "Created Name": programName,
+                    "Issued": issuedRaw,
+                    "Used/ Unused": usedStatus,
+                    "Amount": colMap.amount !== -1 ? row[colMap.amount] : "",
+                    "Used Date": usedDate,
+                    "Sale Order": saleOrder,
+                    "Coupon Code": couponCode
+                });
+            }
+            renderTable(modes.giftcard.headers);
+        }
+
+        function processFestival(rows) {
+            if (rows.length < 1) return;
+            const colMap = {};
+            const requiredSynonyms = {
+                issued_date: ['issued date', 'created on', 'date'],
+                expiry_date: ['expiry date', 'end date', 'valid to'],
+                created_for: ['created for', 'offer name', 'program name', 'description'],
+                coupon_count: ['coupon count', 'count', 'issued', 'total', 'quantity', 'items']
+            };
+            Object.keys(requiredSynonyms).forEach(key => {
+                const idx = rows[0].findIndex(h =>
+                    requiredSynonyms[key].some(syn => h.toLowerCase().trim().includes(syn))
+                );
+                colMap[key] = idx;
+            });
+
+            processedData = [];
+            let sNo = 1;
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length === 0) continue;
+
+                const rawCreatedFor = colMap.created_for !== -1 ? row[colMap.created_for] : "";
+                if (!rawCreatedFor || rawCreatedFor.toString().trim() === "") continue;
+
+                const createdFor = rawCreatedFor.toString().trim();
+
+                let countVal = "";
+                if (colMap.coupon_count !== -1) {
+                    const val = (row[colMap.coupon_count] || "").toString();
+                    // Extract only digits from values like '110 Promos' or '293 Discounts'
+                    const match = val.match(/\d+/);
+                    countVal = match ? match[0] : (val.trim() === "" ? "1" : val);
+                } else {
+                    countVal = "1";
+                }
+
+                processedData.push({
+                    "S.No": sNo++,
+                    "Issued Date": formatDate(colMap.issued_date !== -1 ? row[colMap.issued_date] : ""),
+                    "Expiry Date": formatDate(colMap.expiry_date !== -1 ? row[colMap.expiry_date] : ""),
+                    "Created For": createdFor,
+                    "Coupon Count": countVal
+                });
+            }
+
+            renderTable(modes.festival.headers);
+        }
+
+        function processLuckyDraw(rows) {
+            if (rows.length < 1) return;
+            const colMap = {};
+            const requiredSynonyms = {
+                issued_date: ['created on', 'issued date', 'date'],
+                expiry_date: ['end date', 'expiry date', 'valid to'],
+                created_for: ['program name', 'created for', 'offer name'],
+                issued_count: ['coupon count', 'count', 'issued', 'total', 'items'],
+                amount: ['rewards/description', 'amount', 'value'],
+                used_status: ['coupon/history/used', 'used/ unused', 'status']
+            };
+
+            Object.keys(requiredSynonyms).forEach(key => {
+                const idx = rows[0].findIndex(h =>
+                    requiredSynonyms[key].some(syn => h.toLowerCase().trim().includes(syn))
+                );
+                colMap[key] = idx;
+            });
+
+            processedData = [];
+            let sNo = 1;
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length === 0) continue;
+
+                const programName = colMap.created_for !== -1 ? (row[colMap.created_for] || "").toString().trim() : "";
+                if (!programName) continue;
+
+                const issuedDate = formatDate(colMap.issued_date !== -1 ? row[colMap.issued_date] : "");
+                const expiryDate = formatDate(colMap.expiry_date !== -1 ? row[colMap.expiry_date] : "");
+                const amount = colMap.amount !== -1 ? row[colMap.amount] : "";
+
+                const usedRaw = colMap.used_status !== -1 ? row[colMap.used_status] : "";
+                let usedStatus = "";
+                const lowUsed = usedRaw.toString().toLowerCase();
+                if (usedRaw === 1 || lowUsed.includes('used') || lowUsed.includes('yes') || lowUsed.includes('redeemed')) {
+                    usedStatus = "Used";
+                } else if (usedRaw === 0 || lowUsed.includes('unused') || lowUsed.includes('no') || lowUsed.includes('not')) {
+                    usedStatus = "Unused";
+                } else {
+                    usedStatus = usedRaw || "Unused";
+                }
+
+                let issuedVal = colMap.issued_count !== -1 ? (row[colMap.issued_count] ?? "") : "";
+
+                // Logic: If status is 'Used' but issued count is 0, it means it was issued and then consumed
+                if (usedStatus === "Used" && (issuedVal === 0 || issuedVal === "0" || issuedVal === "")) {
+                    issuedVal = "1";
+                } else if (issuedVal === "" || isNaN(issuedVal)) {
+                    issuedVal = "1";
+                }
+
+                processedData.push({
+                    "S.No": sNo++,
+                    "Issued Date": issuedDate,
+                    "Expiry Date": expiryDate,
+                    "Created For": programName,
+                    "Issued": issuedVal,
+                    "Amount": amount,
+                    "Used/Unused": usedStatus
+                });
+            }
+
+            renderTable(modes.luckydraw.headers);
+        }
+
+        function copyData() {
+            if (processedData.length === 0) return;
+            const headers = modes[currentMode].headers;
+            const tsv = [
+                headers.join('\t'),
+                ...processedData.map(row => headers.map(h => {
+                    const val = row[h] || "";
+                    // Remove any existing tabs or newlines to prevent breaking the Excel grid
+                    return val.toString().replace(/[\t\n\r]/g, " ");
+                }).join('\t'))
+            ].join('\n');
+
+            navigator.clipboard.writeText(tsv).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                btn.classList.add('btn-primary');
+                btn.classList.remove('btn-ghost');
+
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.add('btn-ghost');
+                    btn.classList.remove('btn-primary');
+                }, 2000);
+            });
+        }
+
+        function processGeneric(rows, headers) {
+            processedData = [];
+            for (let i = 1; i < Math.min(rows.length, 500); i++) {
+                const obj = {};
+                headers.forEach((h, idx) => { obj[h] = rows[i][idx] || ""; });
+                if (Object.values(obj).some(v => v !== "")) processedData.push(obj);
+            }
+            renderTable(headers);
+        }
+
+        function formatDate(val) {
+            if (!val) return "";
+            if (!isNaN(val) && val > 20000) {
+                const d = XLSX.SSF.parse_date_code(val);
+                return `${d.d.toString().padStart(2, '0')}-${d.m.toString().padStart(2, '0')}-${d.y}`;
+            }
+            return val;
+        }
+
+        function renderTable(headers) {
+            const head = document.getElementById('tableHead');
+            const body = document.getElementById('tableBody');
+
+            head.innerHTML = '';
+            const trHead = document.createElement('tr');
+            headers.forEach(h => {
+                const th = document.createElement('th');
+                th.textContent = h;
+                trHead.appendChild(th);
+            });
+            head.appendChild(trHead);
+
+            body.innerHTML = '';
+            renderRows(processedData, headers, body);
+
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('resultsArea').style.display = 'block';
+        }
+
+        function renderRows(data, headers, container) {
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                headers.forEach(h => {
+                    const td = document.createElement('td');
+                    const content = row[h] || "";
+
+                    if (h === 'Used/ Unused' || h === 'Redeemed' || h === 'Used/Unused') {
+                        const lowVal = content.toString().toLowerCase();
+                        const isUnused = lowVal.includes('unused') || lowVal.includes('not') || lowVal === 'no';
+                        const badge = document.createElement('span');
+                        badge.className = `badge \${isUnused ? 'badge-unused' : 'badge-used'}`;
+                        badge.textContent = content;
+                        td.appendChild(badge);
+                    } else {
+                        td.textContent = content;
+                    }
+                    tr.appendChild(td);
+                });
+                container.appendChild(tr);
+            });
+        }
+
+        function exportData() {
+            const ws = XLSX.utils.json_to_sheet(processedData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+            XLSX.writeFile(wb, `\${modes[currentMode].title}_\${Date.now()}.xlsx`);
+        }
+
+        function resetAll() {
+            processedData = [];
+            document.getElementById('resultsArea').style.display = 'none';
+            document.getElementById('fileStatus').textContent = '';
+            document.getElementById('fileInput').value = '';
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = processedData.filter(row => Object.values(row).some(v => v.toString().toLowerCase().includes(term)));
+            const body = document.getElementById('tableBody');
+            const headers = modes[currentMode].headers;
+            body.innerHTML = '';
+            renderRows(filtered, headers, body);
+        });
+    </script>
+</body>
+
+</html>

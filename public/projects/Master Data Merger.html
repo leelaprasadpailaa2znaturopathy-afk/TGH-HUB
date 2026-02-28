@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TGH | Master Data Merger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --bg-gradient: linear-gradient(135deg, #090e1a 0%, #1e1b4b 100%);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.75rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, var(--primary-light));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-dim);
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--glass-border);
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .drop-zone:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .drop-zone svg {
+            color: var(--primary-light);
+            margin-bottom: 1rem;
+        }
+
+        .drop-zone-title {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .drop-zone-desc {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .file-input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-list {
+            margin-top: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .file-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .file-info span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.9rem;
+        }
+
+        .remove-file {
+            color: var(--danger);
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+
+        .actions-bar {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-ghost {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .results-container {
+            margin-top: 3rem;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .results-title {
+            font-family: 'Outfit';
+            font-size: 1.5rem;
+        }
+
+        .results-table-wrapper {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.2);
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .results-table-container {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #0f172a;
+        }
+
+        th {
+            padding: 1.25rem 1rem;
+            text-align: left;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--glass-border);
+        }
+
+        td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            font-size: 0.95rem;
+        }
+
+        .loader {
+            display: none;
+            margin: 2rem auto;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--glass-border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .stat-badge {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-light);
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .no-data-msg {
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Master Data Merger</h1>
+            <p>Consolidate DTDC, Amazon, and Shiprocket data into one master file</p>
+        </div>
+
+        <div class="glass-card">
+            <div class="drop-zone" id="dropZone">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                </svg>
+                <label for="fileInput" class="drop-zone-title">Upload Shipping Files</label>
+                <div class="drop-zone-desc">Drop your courier Excel files here (DTDC, Amazon, Shiprocket, etc.)</div>
+                <input type="file" id="fileInput" class="file-input" multiple accept=".xlsx, .xls, .csv">
+            </div>
+
+            <div class="file-list" id="fileList"></div>
+
+            <div class="actions-bar">
+                <button class="btn btn-primary" id="mergeBtn" onclick="processMerge()" disabled>
+                    <span>Merge All Files</span>
+                </button>
+                <button class="btn btn-ghost" onclick="clearFiles()">
+                    <span>Clear All</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="loader" class="loader">
+            <div class="spinner"></div>
+            <p style="margin-top: 1rem; color: var(--text-dim)">Consolidating datasets...</p>
+        </div>
+
+        <div id="resultsArea" class="results-container" style="display: none;">
+            <div class="results-header">
+                <h3 class="results-title">Consolidated Data <span id="recordCount" class="stat-badge">0 Records</span>
+                </h3>
+                <button class="btn btn-primary" onclick="exportMasterData()">
+                    <span>Download Master Excel</span>
+                </button>
+            </div>
+
+            <div class="results-table-wrapper">
+                <div class="results-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Source ID</th>
+                                <th>AWB Number</th>
+                                <th>Carrier Name</th>
+                                <th>Origin File</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedFiles = [];
+        let mergedData = [];
+
+        const SOURCE_ID_SYNONYMS = ["channel_order_id", "order_id", "order id", "order no", "order number", "source id", "reference no", "reference", "ref no", "link"];
+        const AWB_SYNONYMS = ["awb_code", "awb", "awb number", "awb no", "tracking_id", "tracking id", "tracking number", "consignment no", "connote no", "waybill"];
+        const CARRIER_SYNONYMS = ["courier_name", "courier", "courier name", "carrier", "carrier name", "shipping partner", "shipping_partner", "logistics"];
+
+        const fileInput = document.getElementById('fileInput');
+        const fileListContainer = document.getElementById('fileList');
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            for (let file of files) {
+                uploadedFiles.push(file);
+                renderFileList();
+            }
+            checkButtons();
+        }
+
+        function renderFileList() {
+            fileListContainer.innerHTML = '';
+            uploadedFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+
+                const info = document.createElement('div');
+                info.className = 'file-info';
+                info.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                `;
+                const nameSpan = document.createElement('span');
+                nameSpan.title = file.name;
+                nameSpan.textContent = file.name;
+                info.appendChild(nameSpan);
+
+                const remove = document.createElement('div');
+                remove.className = 'remove-file';
+                remove.innerHTML = '&times;';
+                remove.onclick = () => removeFile(index);
+
+                item.appendChild(info);
+                item.appendChild(remove);
+                fileListContainer.appendChild(item);
+            });
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            renderFileList();
+            checkButtons();
+        }
+
+        function checkButtons() {
+            document.getElementById('mergeBtn').disabled = uploadedFiles.length === 0;
+            fileInput.value = '';
+        }
+
+        function normalizeKey(str) {
+            return str.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+        }
+
+        function findColumn(row, synonyms) {
+            const keys = Object.keys(row);
+            for (let synonym of synonyms) {
+                const normSyn = normalizeKey(synonym);
+                const found = keys.find(k => normalizeKey(k) === normSyn);
+                if (found) return found;
+            }
+            return null;
+        }
+
+        async function processMerge() {
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('resultsArea').style.display = 'none';
+            mergedData = [];
+
+            for (let file of uploadedFiles) {
+                try {
+                    const data = await readExcel(file);
+                    if (data && data.length > 0) {
+                        const firstRow = data[0];
+                        const fileNameLower = file.name.toLowerCase();
+
+                        const hasDtdcHeaders = findColumn(firstRow, ["Tracking Number", "Consignment Number", "Consignment No", "Customer Reference Number"]);
+                        const isDTDC = hasDtdcHeaders || fileNameLower.includes('dtdc');
+                        const isShiprocket = (findColumn(firstRow, ["AWB Code"]) && findColumn(firstRow, ["Courier Company"])) || fileNameLower.includes('shiprocket');
+                        const isAmazon = (findColumn(firstRow, ["TrackingId"]) && findColumn(firstRow, ["Reference #"])) || fileNameLower.includes('amazon');
+
+                        data.forEach(row => {
+                            let sourceId = "";
+                            let awb = "";
+                            let carrier = "";
+
+                            if (isShiprocket) {
+                                const sCol = findColumn(row, ["Order ID", "Order Number", ...SOURCE_ID_SYNONYMS]);
+                                const rawOrderId = (sCol ? row[sCol] : "").toString();
+                                const sMatch = rawOrderId.match(/S[^#]*/);
+                                sourceId = sMatch ? sMatch[0] : rawOrderId;
+                                const aCol = findColumn(row, ["AWB Code", "AWB Number", ...AWB_SYNONYMS]);
+                                awb = (aCol ? row[aCol] : "").toString().trim();
+                                const cCol = findColumn(row, ["Courier Company", "Carrier", ...CARRIER_SYNONYMS]);
+                                carrier = (cCol ? row[cCol] : "").toString().trim() || "Shiprocket";
+                            } else if (isDTDC) {
+                                const sCol = findColumn(row, ["Customer Reference Number", "Reference Number", "Reference No", "Order ID", ...SOURCE_ID_SYNONYMS]);
+                                sourceId = (sCol ? row[sCol] : "").toString().trim();
+                                const aCol = findColumn(row, ["Tracking Number", "Consignment Number", "Consignment No", "Tracking No", "AWB Number", ...AWB_SYNONYMS]);
+                                awb = (aCol ? row[aCol] : "").toString().trim();
+                                const cCol = findColumn(row, ["Carrier Name", "Carrier", "Courier", ...CARRIER_SYNONYMS]);
+                                carrier = (cCol ? row[cCol] : "").toString().trim();
+                                if (awb.startsWith('7')) carrier = "DTDC Official";
+                                else if (!carrier) carrier = "DTDC";
+                            } else if (isAmazon) {
+                                const sCol = findColumn(row, ["Reference #", "Order ID", ...SOURCE_ID_SYNONYMS]);
+                                const rawRef = (sCol ? row[sCol] : "").toString();
+                                sourceId = rawRef.split('-pkg')[0].trim();
+                                const aCol = findColumn(row, ["TrackingId", "AWB Number", ...AWB_SYNONYMS]);
+                                awb = (aCol ? row[aCol] : "").toString().trim();
+                                const cCol = findColumn(row, ["Carrier", "Courier", ...CARRIER_SYNONYMS]);
+                                carrier = (cCol ? row[cCol] : "").toString().trim() || "Amazon";
+                            } else {
+                                const sourceCol = findColumn(row, SOURCE_ID_SYNONYMS);
+                                const awbCol = findColumn(row, AWB_SYNONYMS);
+                                const carrierCol = findColumn(row, CARRIER_SYNONYMS);
+                                sourceId = (sourceCol ? row[sourceCol] : "").toString().trim().replace(/^[^a-zA-Z0-9]+/, "");
+                                awb = (awbCol ? row[awbCol] : "").toString().trim();
+                                carrier = (carrierCol ? row[carrierCol] : "").toString().trim();
+                                if (!carrier) {
+                                    if (fileNameLower.includes('dtdc')) carrier = 'DTDC';
+                                    else if (fileNameLower.includes('amazon')) carrier = 'Amazon';
+                                    else if (fileNameLower.includes('shiprocket')) carrier = 'Shiprocket';
+                                    else carrier = 'Unknown';
+                                }
+                            }
+
+                            if (sourceId || awb) {
+                                mergedData.push({ sourceId, awb, carrier, fileName: file.name });
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.error("Error reading file:", file.name, err);
+                }
+            }
+
+            const uniqueAwbs = new Set();
+            mergedData = mergedData.filter(item => {
+                const awbKey = item.awb.toString().trim().toUpperCase();
+                if (!awbKey || uniqueAwbs.has(awbKey)) return false;
+                uniqueAwbs.add(awbKey);
+                return true;
+            });
+
+            renderResults();
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('resultsArea').style.display = 'block';
+        }
+
+        function readExcel(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+                    resolve(json);
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function renderResults() {
+            const body = document.getElementById('resultsBody');
+            body.innerHTML = '';
+            document.getElementById('recordCount').textContent = `\${mergedData.length} Records`;
+
+            mergedData.slice(0, 100).forEach(row => {
+                const tr = document.createElement('tr');
+
+                const tdId = document.createElement('td');
+                const code = document.createElement('code');
+                code.textContent = row.sourceId;
+                tdId.appendChild(code);
+
+                const tdAwb = document.createElement('td');
+                const strong = document.createElement('strong');
+                strong.textContent = row.awb;
+                tdAwb.appendChild(strong);
+
+                const tdCarrier = document.createElement('td');
+                tdCarrier.textContent = row.carrier || 'Unknown';
+
+                const tdFile = document.createElement('td');
+                tdFile.style.fontSize = '0.8rem';
+                tdFile.style.color = 'var(--text-dim)';
+                tdFile.textContent = row.fileName;
+
+                tr.appendChild(tdId);
+                tr.appendChild(tdAwb);
+                tr.appendChild(tdCarrier);
+                tr.appendChild(tdFile);
+                body.appendChild(tr);
+            });
+
+            if (mergedData.length > 100) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 4;
+                td.className = 'no-data-msg';
+                td.textContent = `... and \${mergedData.length - 100} more records (Download to see full list)`;
+                tr.appendChild(td);
+                body.appendChild(tr);
+            }
+        }
+
+        function exportMasterData() {
+            const wsData = mergedData.map(r => ({
+                "Source ID": r.sourceId,
+                "AWB": r.awb,
+                "Carrier": r.carrier,
+                "Reference File": r.fileName
+            }));
+            const ws = XLSX.utils.json_to_sheet(wsData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Master Merged Data");
+            XLSX.writeFile(wb, `TGH_Master_Data_\${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        function clearFiles() {
+            uploadedFiles = [];
+            mergedData = [];
+            renderFileList();
+            checkButtons();
+            document.getElementById('resultsArea').style.display = 'none';
+        }
+
+        const dropZone = document.getElementById('dropZone');
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; });
+        dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--glass-border)'; });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--glass-border)';
+            handleFiles(e.dataTransfer.files);
+        });
+    </script>
+</body>
+
+</html>

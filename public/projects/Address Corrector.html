@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Address Segregator & Corrector</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --bg: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --accent: #10b981;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      z-index: 1;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 600;
+      background: linear-gradient(to right, #818cf8, #34d399);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    p.subtitle {
+      color: var(--text-dim);
+      font-size: 1.1rem;
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      margin-bottom: 2rem;
+      transition: transform 0.3s ease;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    label {
+      font-weight: 600;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    #phoneInputs,
+    #nameInputs,
+    #pincodeInputs {
+      height: 120px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    button {
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .results-section {
+      width: 100%;
+      overflow-x: auto;
+      display: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1rem;
+      text-align: left;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 1rem;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .editable-cell {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text);
+      width: 100%;
+      padding: 4px;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .editable-cell:focus {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--primary);
+    }
+
+    .stats {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
+
+    .stats b {
+      color: var(--accent);
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    .results-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .no-padding {
+      padding: 0 !important;
+      overflow: hidden;
+    }
+
+    .btn-accent {
+      background: var(--accent) !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Address Segregator AI</h1>
+      <p class="subtitle">Convert messy block text into structured destination data</p>
+    </header>
+
+    <section class="glass-card">
+      <div class="input-group">
+        <label for="addressInput">Paste Messy Address Data Here</label>
+        <textarea id="addressInput"
+          placeholder="17-26-25SithampetaRajahmundry urban 533101Andhra Pradesh&#10;DarsiDarsi 523247Andhra Pradesh APIndia&#10;..."></textarea>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="processAddresses()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="21 8 21 21 3 21 3 8"></polyline>
+            <rect x="1" y="3" width="22" height="5"></rect>
+            <line x1="10" y1="12" x2="14" y2="12"></line>
+          </svg>
+          Segregate Data
+        </button>
+        <button class="btn-secondary" onclick="clearInput()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"></path>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+          </svg>
+          Clear
+        </button>
+      </div>
+    </section>
+
+    <div id="loadingOverlay"
+      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;">
+      <div
+        style="background:var(--card-bg); padding:2rem; border-radius:16px; border:1px solid var(--border); text-align:center;">
+        <div
+          style="width:40px; height:40px; border:4px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 1rem;">
+        </div>
+        <p>Processing Data...</p>
+      </div>
+    </div>
+    <style>
+      @keyframes spin {
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+
+    <section class="glass-card">
+      <div class="input-group">
+        <label for="nameInputs">Quick Name Formatter (Case Fixer)</label>
+        <textarea id="nameInputs" placeholder="john doe&#10;MEERA KUMARI&#10;..."></textarea>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="formatNames()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Clean Names
+        </button>
+      </div>
+    </section>
+
+    <section class="glass-card">
+      <div class="input-group">
+        <label for="phoneInputs">Quick Mobile Number Formatter (10-Digit Fixer)</label>
+        <textarea id="phoneInputs" placeholder="+91 98765 43210&#10;918887776665&#10;777 666 5554..."></textarea>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="formatPhoneNumbers()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+            </path>
+          </svg>
+          Clean Numbers
+        </button>
+      </div>
+    </section>
+
+    <section class="glass-card">
+      <div class="input-group">
+        <label for="pincodeInputs">Quick Pincode Formatter (6-Digit Puller)</label>
+        <textarea id="pincodeInputs" placeholder="533001&#10;560001&#10;..."></textarea>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="formatPincodes()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          Clean Pincodes
+        </button>
+      </div>
+    </section>
+
+    <div id="resultsWrapper" class="results-section">
+      <div class="stats">
+        <span>Total Records: <b id="countTotal">0</b></span>
+        <span>Ready for Export: <b id="countReady">0</b></span>
+      </div>
+      <div class="glass-card no-padding">
+        <table>
+          <thead>
+            <tr>
+              <th>Destination Pincode</th>
+              <th>Destination Name</th>
+              <th>Destination Phone</th>
+              <th>Destination Address Line 1</th>
+              <th>Destination Address Line 2</th>
+              <th>Destination City</th>
+              <th>Destination State</th>
+            </tr>
+          </thead>
+          <tbody id="resultsTableBody">
+            <!-- Rows injected here -->
+          </tbody>
+        </table>
+      </div>
+      <div class="results-actions">
+        <button class="btn-primary btn-accent" onclick="exportToExcel()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export to Excel (.xlsx)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(text) {
+      if (!text) return "";
+      return text.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    const statesList = [
+      "ANDHRA PRADESH", "ARUNACHAL PRADESH", "ASSAM", "BIHAR", "CHHATTISGARH", "GOA", "GUJARAT",
+      "HARYANA", "HIMACHAL PRADESH", "JHARKHAND", "KARNATAKA", "KERALA", "MADHYA PRADESH",
+      "MAHARASHTRA", "MANIPUR", "MEGHALAYA", "MIZORAM", "NAGALAND", "ODISHA", "PUNJAB",
+      "RAJASTHAN", "SIKKIM", "TAMIL NADU", "TELANGANA", "TRIPURA", "UTTAR PRADESH",
+      "UTTARAKHAND", "WEST BENGAL", "ANDAMAN AND NICOBAR", "CHANDIGARH", "DADRA AND NAGAR HAVELI",
+      "DAMAN AND DIU", "LAKSHADWEEP", "DELHI", "PUDUCHERRY", "LADAKH", "JAMMU AND KASHMIR"
+    ];
+
+    function processAddresses() {
+      const addrInput = document.getElementById('addressInput').value;
+      const nameInput = document.getElementById('nameInputs').value;
+      const phoneInput = document.getElementById('phoneInputs').value;
+      const pinInput = document.getElementById('pincodeInputs').value;
+
+      if (!addrInput && !nameInput && !phoneInput && !pinInput) return;
+
+      document.getElementById('loadingOverlay').style.display = 'flex';
+
+      setTimeout(() => {
+        // Extract lists
+        let blocks = [];
+        const quoteRegex = /"([^"]+)"/g;
+        let match;
+        while ((match = quoteRegex.exec(addrInput)) !== null) {
+          blocks.push(match[1].trim());
+        }
+        if (blocks.length === 0) {
+          blocks = addrInput.split(/\n\n+/).filter(b => b.trim() !== '');
+        }
+
+        const namesList = nameInput.split('\n').filter(n => n.trim());
+        const phonesList = phoneInput.split('\n').filter(p => p.trim());
+        const pinsList = pinInput.split('\n').filter(p => p.trim());
+
+        const tableBody = document.getElementById('resultsTableBody');
+        tableBody.innerHTML = '';
+
+        const maxCount = Math.max(blocks.length, namesList.length, phonesList.length, pinsList.length);
+
+        for (let i = 0; i < maxCount; i++) {
+          const block = blocks[i] || '';
+          let data = parseAddressBlock(block);
+
+          // Override with separate inputs if provided
+          if (namesList[i]) data.name = namesList[i];
+          if (phonesList[i]) data.phone = phonesList[i];
+          if (pinsList[i]) data.pincode = pinsList[i];
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><input type="text" class="editable-cell" data-field="pincode" value="${escapeHtml(data.pincode)}"></td>
+            <td><input type="text" class="editable-cell" data-field="name" value="${escapeHtml(data.name)}"></td>
+            <td><input type="text" class="editable-cell" data-field="phone" value="${escapeHtml(data.phone)}"></td>
+            <td><input type="text" class="editable-cell" data-field="addr1" value="${escapeHtml(data.addr1)}"></td>
+            <td><input type="text" class="editable-cell" data-field="addr2" value="${escapeHtml(data.addr2)}"></td>
+            <td><input type="text" class="editable-cell" data-field="city" value="${escapeHtml(data.city)}"></td>
+            <td><input type="text" class="editable-cell" data-field="state" value="${escapeHtml(data.state)}"></td>
+          `;
+          tableBody.appendChild(tr);
+        }
+
+        document.getElementById('countTotal').innerText = maxCount;
+        document.getElementById('countReady').innerText = maxCount;
+        document.getElementById('loadingOverlay').style.display = 'none';
+        document.getElementById('resultsWrapper').style.display = 'block';
+        const resultsWrapper = document.getElementById('resultsWrapper');
+        resultsWrapper.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    }
+
+    function parseAddressBlock(block) {
+      // 1. Initial setup
+      let remainingText = block.trim();
+      let pincode = '';
+      let phone = '';
+      let state = '';
+      let city = '';
+      let name = '';
+      let addr1 = '';
+      let addr2 = '';
+
+      // 2. Extract Phone (Ignore in final address fields per rules)
+      const phoneRegex = /(?:\+91|91)?[ \-]?([6-9]\d{9})\b|(?:\+91|91)?[ \-]?([6-9][\d ]{9,12})/;
+      const phoneMatch = remainingText.match(phoneRegex);
+      if (phoneMatch) {
+        phone = (phoneMatch[1] || phoneMatch[2]).replace(/\s+/g, '');
+        if (phone.length > 10) phone = phone.slice(-10);
+        remainingText = remainingText.replace(phoneMatch[0], ' ');
+      }
+
+      // 3. Extract Pincode (Ignore in final address fields per rules)
+      const pinMatch = remainingText.match(/\b\d{6}\b/);
+      if (pinMatch) {
+        pincode = pinMatch[0];
+        remainingText = remainingText.replace(pincode, ' ');
+      }
+
+      // 4. Extract State and Clean Abbreviations
+      const abbrMap = {
+        'AP': 'ANDHRA PRADESH', 'TS': 'TELANGANA', 'UP': 'UTTAR PRADESH',
+        'MP': 'MADHYA PRADESH', 'DL': 'DELHI', 'KA': 'KARNATAKA',
+        'TN': 'TAMIL NADU', 'KL': 'KERALA', 'MH': 'MAHARASHTRA',
+        'WB': 'WEST BENGAL', 'HR': 'HARYANA', 'PB': 'PUNJAB',
+        'GJ': 'GUJARAT', 'RJ': 'RAJASTHAN', 'CG': 'CHHATTISGARH'
+      };
+
+      for (let s of statesList) {
+        const stateRegex = new RegExp('\\b' + s + '\\b', 'i');
+        if (stateRegex.test(remainingText)) {
+          state = s;
+          remainingText = remainingText.replace(stateRegex, ' ');
+        }
+      }
+
+      Object.keys(abbrMap).forEach(abbr => {
+        const abbrRegex = new RegExp('\\b' + abbr + '\\b', 'i');
+        if (abbrRegex.test(remainingText)) {
+          if (!state) state = abbrMap[abbr];
+          remainingText = remainingText.replace(abbrRegex, ' ');
+        }
+      });
+
+      // 5. Remove Country name
+      remainingText = remainingText.replace(/\bIndia\b/gi, ' ');
+
+      // 6. Split into logical lines (cleaning extra punctuation)
+      let rawLines = remainingText.split('\n')
+        .map(l => l.trim().replace(/^,+|,+$/g, '').trim())
+        .filter(l => l.length > 0);
+
+      // Extract Name (ONLY if it looks like a name and NOT a house number)
+      if (rawLines.length > 0) {
+        const firstLine = rawLines[0];
+        const hasHouseIndicators = /[\d\/\-]/.test(firstLine);
+        const wordCount = firstLine.split(' ').length;
+
+        // If it overlaps with address-like patterns, skip it and treat as Address Line 1
+        if (!hasHouseIndicators && wordCount <= 4) {
+          name = firstLine;
+          rawLines.shift();
+        }
+      }
+
+      // Destination City (Take last remaining line)
+      if (rawLines.length > 0) {
+        city = rawLines[rawLines.length - 1];
+        rawLines.pop();
+      }
+
+      // Address Line 1 & 2
+      if (rawLines.length > 0) {
+        addr1 = rawLines[0];
+        rawLines.shift();
+
+        if (rawLines.length > 0) {
+          addr2 = rawLines.join(', ');
+        } else if (addr1 && city) {
+          // New Rule: If addr2 is empty, take last 2 words of addr1 + city
+          const words = addr1.split(' ').filter(w => w.length > 0);
+          if (words.length >= 2) {
+            const lastTwo = words.slice(-2).join(' ');
+            addr2 = `${lastTwo}, ${city}`;
+          } else {
+            addr2 = city; // Fallback to just city if line 1 is too short
+          }
+        }
+      }
+
+      // Final sanitization
+      return {
+        pincode: pincode || '',
+        phone: phone || '',
+        state: state || '',
+        city: city || '',
+        name: name || '',
+        addr1: addr1 || '',
+        addr2: addr2 || ''
+      };
+    }
+
+    function clearInput() {
+      document.getElementById('addressInput').value = '';
+      document.getElementById('phoneInputs').value = '';
+      document.getElementById('nameInputs').value = '';
+      document.getElementById('pincodeInputs').value = '';
+      document.getElementById('resultsWrapper').style.display = 'none';
+      document.getElementById('resultsTableBody').innerHTML = '';
+    }
+
+    function formatPhoneNumbers() {
+      const input = document.getElementById('phoneInputs').value;
+      const lines = input.split('\n').filter(l => l.trim() !== '');
+      const cleanedResults = [];
+
+      lines.forEach(line => {
+        // Remove all non-numeric characters except + for initial cleaning
+        let cleaned = line.replace(/[^\d+]/g, '');
+
+        // Remove +91 or 91 if it's there and length becomes 10
+        if (cleaned.startsWith('+91')) cleaned = cleaned.substring(3);
+        else if (cleaned.startsWith('91') && cleaned.length > 10) cleaned = cleaned.substring(2);
+
+        // Extract the last 10 digits if it looks like a mobile number
+        const match = cleaned.match(/([6-9]\d{9})$/);
+        if (match) {
+          cleanedResults.push(match[1]);
+        } else {
+          // If no match, try to just take 10 digits if they exist
+          const any10 = cleaned.match(/\d{10}/);
+          cleanedResults.push(any10 ? any10[0] : 'Invalid');
+        }
+      });
+
+      if (cleanedResults.length > 0) {
+        document.getElementById('phoneInputs').value = cleanedResults.join('\n');
+      }
+    }
+
+    function formatNames() {
+      const input = document.getElementById('nameInputs').value;
+      const lines = input.split('\n').filter(l => l.trim() !== '');
+      const cleanedResults = lines.map(name => {
+        return name.toLowerCase().split(' ').map(word => {
+          return word.charAt(0).toUpperCase() + word.slice(1);
+        }).join(' ');
+      });
+
+      if (cleanedResults.length > 0) {
+        document.getElementById('nameInputs').value = cleanedResults.join('\n');
+      }
+    }
+
+    function formatPincodes() {
+      const input = document.getElementById('pincodeInputs').value;
+      const lines = input.split('\n').filter(l => l.trim() !== '');
+      const cleanedResults = lines.map(line => {
+        const match = line.match(/\d{6}/);
+        return match ? match[0] : 'Invalid';
+      });
+
+      if (cleanedResults.length > 0) {
+        document.getElementById('pincodeInputs').value = cleanedResults.join('\n');
+      }
+    }
+
+    function exportToExcel() {
+      const table = document.querySelector("table");
+      const rows = table.querySelectorAll("tr");
+      const data = [];
+
+      // Headers
+      const headerRow = [];
+      rows[0].querySelectorAll("th").forEach(th => headerRow.push(th.innerText));
+      data.push(headerRow);
+
+      // Data
+      for (let i = 1; i < rows.length; i++) {
+        const row = [];
+        const inputs = rows[i].querySelectorAll("input");
+        inputs.forEach(input => row.push(input.value));
+        data.push(row);
+      }
+
+      const worksheet = XLSX.utils.aoa_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Addresses");
+
+      // Format for download
+      XLSX.writeFile(workbook, `Address_Export_${new Date().getTime()}.xlsx`);
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TGH | AWB Matcher</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --bg-gradient: linear-gradient(135deg, #090e1a 0%, #1e1b4b 100%);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.75rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, var(--primary-light));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .upload-zone svg {
+            color: var(--primary-light);
+            margin-bottom: 1rem;
+        }
+
+        .file-input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-status {
+            color: var(--accent);
+            margin-top: 0.5rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .zone-title {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .zone-desc {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .actions-bar {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-ghost {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .results-container {
+            margin-top: 3rem;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .results-table-wrapper {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            padding: 1.25rem 1rem;
+            text-align: left;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            font-size: 0.95rem;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-success {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent);
+        }
+
+        .status-fail {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .loader {
+            display: none;
+            margin: 2rem auto;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--glass-border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .upload-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AWB Data Matcher</h1>
+            <p style="color: var(--text-dim)">Match Order IDs from two files and fetch tracking information</p>
+        </div>
+
+        <div class="glass-card">
+            <div class="upload-grid">
+                <!-- Target File (The ones we need AWB for) -->
+                <div class="upload-zone" id="targetZone">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="18" x2="12" y2="12"></line>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                    <label for="targetInput" class="zone-title">Input File</label>
+                    <div class="zone-desc">The list of orders needing AWB</div>
+                    <div id="targetStatus" class="file-status"></div>
+                    <input type="file" class="file-input" id="targetInput" accept=".xlsx, .xls, .csv">
+                </div>
+
+                <!-- Master File (The one with the answers) -->
+                <div class="upload-zone" id="masterZone">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <label for="masterInput" class="zone-title">Master Data</label>
+                    <div class="zone-desc">Database containing all Order-AWB links</div>
+                    <div id="masterStatus" class="file-status"></div>
+                    <input type="file" class="file-input" id="masterInput" accept=".xlsx, .xls, .csv">
+                </div>
+            </div>
+
+            <div class="actions-bar">
+                <button class="btn btn-primary" id="matchBtn" onclick="processMatching()" disabled>
+                    <span>Match Data</span>
+                </button>
+                <button class="btn btn-ghost" onclick="resetAll()">
+                    <span>Clear Files</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="loader" class="loader">
+            <div class="spinner"></div>
+            <p style="margin-top: 1rem; color: var(--text-dim)">Processing large datasets...</p>
+        </div>
+
+        <div id="resultsArea" class="results-container" style="display: none;">
+            <div class="results-header">
+                <div>
+                    <h3 style="font-family: 'Outfit'; font-size: 1.5rem; margin-bottom: 0.5rem;">Match Results</h3>
+                    <div style="display: flex; gap: 0.5rem;" id="filterGroup">
+                        <button class="btn btn-ghost"
+                            style="padding: 0.3rem 1rem; font-size: 0.75rem; background: var(--primary); border-color: var(--primary)"
+                            onclick="filterResults('all', this)">All</button>
+                        <button class="btn btn-ghost" style="padding: 0.3rem 1rem; font-size: 0.75rem;"
+                            onclick="filterResults('found', this)">Found</button>
+                        <button class="btn btn-ghost" style="padding: 0.3rem 1rem; font-size: 0.75rem;"
+                            onclick="filterResults('missing', this)">Missing</button>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end;">
+                    <button class="btn btn-ghost"
+                        style="padding: 0.5rem 1rem; font-size: 0.85rem; border-color: var(--danger); color: var(--danger)"
+                        onclick="copyMissingIds()">Copy Missing IDs</button>
+                    <button class="btn btn-ghost" style="padding: 0.5rem 1rem; font-size: 0.85rem;"
+                        onclick="copyAwbs()">Copy AWBs Only</button>
+                    <button class="btn btn-primary" style="padding: 0.5rem 1.5rem; font-size: 0.85rem;"
+                        onclick="exportResults()">Download Results (.xlsx)</button>
+                </div>
+            </div>
+
+            <div class="results-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order/Source ID</th>
+                            <th>Status</th>
+                            <th>Matched AWB Data</th>
+                            <th>Carrier/Courier</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let targetData = [];
+        let masterData = [];
+        let finalResults = [];
+        let currentFilter = 'all';
+
+        // Helper to normalize strings for comparison
+        function normalize(str) {
+            if (!str) return "";
+            // Remove special characters, handle "S" prefix consistently, and trim
+            return str.toString().trim().toUpperCase().replace(/^#/, "");
+        }
+
+        // Specifically for Order IDs which often look like S12345
+        function normalizeOrderId(id) {
+            if (!id) return "";
+            let cleaned = id.toString().trim().toUpperCase();
+            // If it matches S followed by numbers, keep that. If it's just numbers, add S? 
+            // Better: just remove non-alphanumeric and compare
+            return cleaned.replace(/[^A-Z0-9]/g, "");
+        }
+
+        // Try to find a column by various names
+        function findColumn(row, synonyms) {
+            const keys = Object.keys(row);
+            for (const synonym of synonyms) {
+                const normalizedSynonym = synonym.toLowerCase().replace(/[^a-z0-9]/g, "");
+                const found = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, "") === normalizedSynonym);
+                if (found) return found;
+            }
+            return null;
+        }
+
+        const ORDER_COL_SYNONYMS = ["Order ID", "Order No", "Order Number", "Source ID", "Source Number", "Reference", "Link", "Source ID (Link)"];
+        const AWB_COL_SYNONYMS = ["AWB", "AWB Code", "AWB Number", "Tracking", "Tracking Number", "Consignment No", "Waybill"];
+        const CARRIER_COL_SYNONYMS = ["Carrier", "Courier", "Courier Name", "Shipping Partner", "Shipment Service", "Logistics Partner", "Carrier Name"];
+
+        async function readExcel(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.SheetNames[0];
+                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { defval: "" });
+                    resolve(jsonData);
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        document.getElementById('targetInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                targetData = await readExcel(file);
+                document.getElementById('targetStatus').textContent = `✓ ${targetData.length} entries loaded`;
+                checkInputs();
+            }
+        });
+
+        document.getElementById('masterInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                masterData = await readExcel(file);
+                document.getElementById('masterStatus').textContent = `✓ ${masterData.length} records loaded`;
+                checkInputs();
+            }
+        });
+
+        function checkInputs() {
+            document.getElementById('matchBtn').disabled = !(targetData.length > 0 && masterData.length > 0);
+        }
+
+        function processMatching() {
+            if (targetData.length === 0 || masterData.length === 0) return;
+
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('resultsArea').style.display = 'none';
+
+            setTimeout(() => {
+                finalResults = [];
+
+                // Detect columns once
+                const targetOrderCol = findColumn(targetData[0], ORDER_COL_SYNONYMS) || Object.keys(targetData[0])[0];
+                const masterOrderCol = findColumn(masterData[0], ORDER_COL_SYNONYMS) || Object.keys(masterData[0])[0];
+                const masterAwbCol = findColumn(masterData[0], AWB_COL_SYNONYMS) || Object.keys(masterData[0])[1];
+                const masterCarrierCol = findColumn(masterData[0], CARRIER_COL_SYNONYMS);
+
+                console.log("Detected Columns:", { targetOrderCol, masterOrderCol, masterAwbCol });
+
+                targetData.forEach(targetRow => {
+                    const rawId = targetRow[targetOrderCol];
+                    const targetIdNorm = normalizeOrderId(rawId);
+
+                    if (!targetIdNorm) return;
+
+                    // Find all potential matches
+                    const matches = masterData.filter(masterRow => {
+                        const masterIdNorm = normalizeOrderId(masterRow[masterOrderCol]);
+                        return masterIdNorm === targetIdNorm;
+                    });
+
+                    let bestMatch = null;
+                    if (matches.length > 0) {
+                        // Priority 1: Match with actual AWB data
+                        bestMatch = matches.find(m => {
+                            const val = m[masterAwbCol]?.toString().trim();
+                            return val && val !== "" && val.toLowerCase() !== "not found" && val.toLowerCase() !== "n/a";
+                        });
+
+                        // Priority 2: If no "good" match, take the first one found
+                        if (!bestMatch) bestMatch = matches[0];
+                    }
+
+                    let awb = 'Not Found';
+                    let carrier = '--';
+                    if (bestMatch) {
+                        awb = bestMatch[masterAwbCol] || 'No Data';
+                        carrier = masterCarrierCol ? (bestMatch[masterCarrierCol] || 'Unknown') : '--';
+                    }
+
+                    finalResults.push({ orderId: rawId, awb: awb, carrier: carrier, found: !!bestMatch });
+                });
+
+                renderTable();
+
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('resultsArea').style.display = 'block';
+            }, 500);
+        }
+
+        function filterResults(type, btn) {
+            currentFilter = type;
+
+            // Update UI
+            document.querySelectorAll('#filterGroup .btn').forEach(b => {
+                b.style.background = 'var(--glass-bg)';
+                b.style.borderColor = 'var(--glass-border)';
+            });
+            btn.style.background = 'var(--primary)';
+            btn.style.borderColor = 'var(--primary)';
+
+            renderTable();
+        }
+
+        function renderTable() {
+            const resultsBody = document.getElementById('resultsBody');
+            resultsBody.innerHTML = '';
+
+            const filtered = finalResults.filter(r => {
+                if (currentFilter === 'all') return true;
+                if (currentFilter === 'found') return r.found;
+                if (currentFilter === 'missing') return !r.found;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                resultsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem; color: var(--text-dim)">No ${currentFilter === 'all' ? '' : currentFilter} records to display.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(r => {
+                const tr = document.createElement('tr');
+
+                const tdOrder = document.createElement('td');
+                const code = document.createElement('code');
+                code.textContent = r.orderId;
+                tdOrder.appendChild(code);
+
+                const tdStatus = document.createElement('td');
+                const badge = document.createElement('span');
+                badge.className = `status-badge ${r.found ? 'status-success' : 'status-fail'}`;
+                badge.textContent = r.found ? 'Found' : 'Missing';
+                tdStatus.appendChild(badge);
+
+                const tdAwb = document.createElement('td');
+                if (r.found) {
+                    const strong = document.createElement('strong');
+                    strong.textContent = r.awb;
+                    tdAwb.appendChild(strong);
+                } else {
+                    const dim = document.createElement('span');
+                    dim.style.color = 'var(--text-dim)';
+                    dim.textContent = '--';
+                    tdAwb.appendChild(dim);
+                }
+
+                const tdCarrier = document.createElement('td');
+                const carrierSpan = document.createElement('span');
+                carrierSpan.style.color = r.found ? 'var(--text-main)' : 'var(--text-dim)';
+                carrierSpan.textContent = r.carrier;
+                tdCarrier.appendChild(carrierSpan);
+
+                tr.appendChild(tdOrder);
+                tr.appendChild(tdStatus);
+                tr.appendChild(tdAwb);
+                tr.appendChild(tdCarrier);
+                resultsBody.appendChild(tr);
+            });
+        }
+
+        function exportResults() {
+            const ws = XLSX.utils.json_to_sheet(finalResults.map(r => ({
+                "Source ID": r.orderId,
+                "Status": r.found ? "Matched" : "Not Matched",
+                "AWB Data": r.awb,
+                "Carrier": r.carrier
+            })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Matched_AWB");
+            XLSX.writeFile(wb, `AWB_Match_Report_${Date.now()}.xlsx`);
+        }
+
+        function copyAwbs() {
+            const awbs = finalResults.filter(r => r.found).map(r => r.awb).join('\n');
+            navigator.clipboard.writeText(awbs);
+            alert(`Found ${finalResults.filter(r => r.found).length} AWBs copied to clipboard!`);
+        }
+
+        function copyMissingIds() {
+            const ids = finalResults.filter(r => !r.found).map(r => r.orderId).join('\n');
+            navigator.clipboard.writeText(ids);
+            alert(`Copied ${finalResults.filter(r => !r.found).length} Missing Order IDs for manual search!`);
+        }
+
+        function resetAll() {
+            targetData = [];
+            masterData = [];
+            finalResults = [];
+            document.getElementById('targetStatus').textContent = '';
+            document.getElementById('masterStatus').textContent = '';
+            document.getElementById('targetInput').value = '';
+            document.getElementById('masterInput').value = '';
+            document.getElementById('resultsArea').style.display = 'none';
+            document.getElementById('matchBtn').disabled = true;
+        }
+    </script>
+</body>
+
+</html>

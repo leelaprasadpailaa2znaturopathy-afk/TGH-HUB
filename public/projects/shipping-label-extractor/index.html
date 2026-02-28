@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShipMaster | Advanced Shipping Label & Order Matching Tools</title>
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Automate your shipping workflow. Extract Source IDs from PDF labels and match orders with your Packing Master sheet effortlessly.">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Lucide Icons for premium feel -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- OCR Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- PDF Manipulation -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fa-solid fa-cube"></i>
+                <span>ShipMaster</span>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <div class="nav-links">
+                    <a href="#section1" class="nav-link active" id="nav1">1. ID Extractor</a>
+                    <a href="#section5" class="nav-link" id="nav5">2. Amazon AI Scan</a>
+                    <a href="#section2" class="nav-link" id="nav2">3. Review & Export</a>
+                    <a href="#section3" class="nav-link" id="nav3">4. Packing Master</a>
+                    <a href="#section4" class="nav-link" id="nav4">5. Pending Orders</a>
+                </div>
+                <button id="themeToggle" class="theme-toggle" title="Toggle Dark/Light Mode">
+                    <i class="fa-solid fa-moon"></i>
+                    <i class="fa-solid fa-sun"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Section 1: Extraction -->
+        <section id="section1" class="section active">
+            <div class="section-header">
+                <h2>Extract Shipping IDs</h2>
+                <p>Upload your PDF labels to automatically extract Source IDs, AWBs, and Courier details.</p>
+            </div>
+
+            <div class="upload-grid">
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon-wrapper">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <div class="upload-text">
+                        <h3>Drop PDF labels here</h3>
+                        <p>or click to browse from your computer</p>
+                    </div>
+                    <input type="file" id="pdfInput" multiple accept=".pdf" style="display: none;">
+                </div>
+
+                <div class="file-list-card">
+                    <h4>
+                        <span><i class="fa-solid fa-file-pdf"></i> Selected Files</span>
+                        <span id="fileCount" class="badge badge-none">0</span>
+                    </h4>
+                    <ul id="fileListItems" class="file-list-items" style="list-style: none;">
+                        <!-- Files listed here -->
+                    </ul>
+                    <div id="processingArea" class="hidden">
+                        <button id="processAllBtn" class="btn btn-primary" style="width: 100%;"
+                            onclick="processAllFiles()">
+                            <i class="fa-solid fa-bolt"></i> Process All Files
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="extractionProgress" class="progress-card hidden" style="margin-top: 3rem;">
+                <h4 id="progressText">Processing...</h4>
+                <div class="progress-track">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div id="extractedIds" class="hidden" style="margin-top: 1.5rem;">
+                    <div id="idsContainer" class="hidden"></div>
+                    <button class="btn btn-primary" onclick="proceedToReview()">
+                        Proceed to Review <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+
+                    <div id="amazonDetectionAlert" class="alert-warning hidden"
+                        style="margin-top: 1.5rem; text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <i class="fa-brands fa-amazon pulse-icon" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <strong>Amazon Labels Detected!</strong>
+                                <p style="font-size: 0.85rem; margin-top: 0.25rem;">Some pages look like Amazon labels
+                                    with no Source ID. We can split them and scan them with AI for better accuracy.</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm"
+                            style="margin-top: 1rem; width: 100%; background: #f59e0b;"
+                            onclick="splitAndSendToAmazonScanner()">
+                            <i class="fa-solid fa-scissors"></i> Split & Send to AI Scanner
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Amazon Scanner (Integrated High-Fidelity OCR) -->
+        <section id="section5" class="section">
+            <div class="section-header">
+                <h2>Amazon AI Scan</h2>
+                <p>Specialized OCR-first processing for Amazon labels. Perfect for PDFs with multiple labels or scanned
+                    images.</p>
+            </div>
+
+            <div class="upload-grid">
+                <div class="upload-zone" id="amazonUploadZone"
+                    style="border-color: #fbbf24; background: rgba(251, 191, 36, 0.03);">
+                    <div class="upload-icon-wrapper" style="background: rgba(251, 191, 36, 0.1); color: #f59e0b;">
+                        <i class="fa-brands fa-amazon"></i>
+                    </div>
+                    <div class="upload-text">
+                        <h3>Drop Amazon labels here</h3>
+                        <p>OCR will read every page with high precision</p>
+                    </div>
+                    <input type="file" id="amazonPdfInput" multiple accept=".pdf" style="display: none;">
+                </div>
+
+                <div class="file-list-card" style="background: var(--surface);">
+                    <h4>
+                        <span><i class="fa-brands fa-amazon"></i> Amazon Worklist</span>
+                        <span id="amazonFileCount" class="badge badge-none">0</span>
+                    </h4>
+                    <ul id="amazonFileListItems" class="file-list-items" style="list-style: none;">
+                        <!-- Files listed here -->
+                    </ul>
+                    <div id="amazonProcessingArea" class="hidden">
+                        <button id="processAmazonBtn" class="btn btn-primary"
+                            style="width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);"
+                            onclick="processAmazonFiles()">
+                            <i class="fa-solid fa-microchip"></i> Run AI OCR Scan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Review -->
+        <section id="section2" class="section">
+            <div class="section-header">
+                <h2>Review Extracted Data</h2>
+                <p>Verify the extracted information and export it to your preferred format.</p>
+            </div>
+
+            <div class="review-layout">
+                <div class="card table-container">
+                    <div class="table-header-actions">
+                        <h3><i class="fa-solid fa-list-check"></i> Extracted Result</h3>
+                        <div class="table-actions">
+                            <!-- Filter toggles could go here -->
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="idsTable">
+                            <thead>
+                                <tr>
+                                    <th>Source ID</th>
+                                    <th>Courier</th>
+                                    <th>AWB Code</th>
+                                    <th>File Name</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reviewTableBody">
+                                <!-- Table rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="sidebar-panel">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);">
+                                <i class="fa-solid fa-layer-group"></i>
+                            </div>
+                            <div>
+                                <span id="totalCount" class="stat-val">0</span>
+                                <span class="stat-label">Total Items</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"
+                                style="background: rgba(16, 185, 129, 0.1); color: var(--secondary);">
+                                <i class="fa-solid fa-tag"></i>
+                            </div>
+                            <div>
+                                <span id="sourceCount" class="stat-val">0</span>
+                                <span class="stat-label">Source IDs</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--accent);">
+                                <i class="fa-solid fa-truck"></i>
+                            </div>
+                            <div>
+                                <span id="otherCount" class="stat-val">0</span>
+                                <span class="stat-label">AWB Only</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card export-card">
+                        <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-download"></i> Export Data</h3>
+                        <button class="btn btn-primary" onclick="exportToExcel()">
+                            <i class="fa-solid fa-file-excel"></i> Export to Excel (.xlsx)
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportToCSV()">
+                            <i class="fa-solid fa-file-csv"></i> Export to CSV
+                        </button>
+                        <button class="btn btn-secondary" onclick="copyToClipboard()">
+                            <i class="fa-solid fa-copy"></i> Copy Source IDs
+                        </button>
+
+                        <div class="preview-box">
+                            <h4><i class="fa-solid fa-eye"></i> Quick Preview</h4>
+                            <textarea id="previewText" readonly placeholder="Source IDs will appear here..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Packing Master -->
+        <section id="section3" class="section">
+            <div class="section-header">
+                <h2>Packing Master Tool</h2>
+                <p>Compare your Packing Master list with received orders to update fulfillment statuses.</p>
+            </div>
+
+            <div class="packing-grid">
+                <div class="upload-group">
+                    <div class="file-drop-mini">
+                        <label for="packingFile"><i class="fa-solid fa-file-invoice"></i> 1. Packing Master
+                            (.xlsx)</label>
+                        <input type="file" id="packingFile" accept=".xlsx,.xls">
+                    </div>
+                    <div class="file-drop-mini">
+                        <label for="ordersFile"><i class="fa-solid fa-file-export"></i> 2. Orders Export (.xlsx)</label>
+                        <input type="file" id="ordersFile" accept=".xlsx,.xls">
+                    </div>
+                </div>
+
+                <div class="flex-between">
+                    <button id="processBtn" class="btn btn-primary btn-lg" disabled style="padding: 1rem 3rem;">
+                        <i class="fa-solid fa-sync"></i> Process & Match Orders
+                    </button>
+                </div>
+
+                <div id="resultSection" class="hidden">
+                    <div class="card log-card">
+                        <h4 style="color: #fff; margin-bottom: 1rem;"><i class="fa-solid fa-terminal"></i> Processing
+                            Log</h4>
+                        <pre id="output" class="console-output">Ready...</pre>
+                    </div>
+
+                    <div style="margin-top: 3rem;">
+                        <h3 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-clock-rotate-left"></i> Pending Orders
+                        </h3>
+                        <div id="pendingOrders" class="pending-list">
+                            <!-- Pending orders rendered here -->
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 3rem;">
+                        <h3 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-circle-exclamation"></i> Missing in
+                            Packing Master</h3>
+                        <div class="alert-warning">
+                            <pre id="missingOrders" class="mono-display"></pre>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 3rem;">
+                        <h3 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-table-list"></i> Update Preview</h3>
+                        <div class="card table-wrapper">
+                            <table id="previewTable">
+                                <thead>
+                                    <tr>
+                                        <th>Row</th>
+                                        <th>Order ID</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="previewBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 3rem; display: flex; gap: 1rem;">
+                        <button id="downloadUpdatedBtn" class="btn btn-primary">
+                            <i class="fa-solid fa-download"></i> Download Updated Sheet
+                        </button>
+                        <button id="exportPendingBtn" class="btn btn-secondary">
+                            <i class="fa-solid fa-file-export"></i> Export Pending Only
+                        </button>
+                        <button id="goToPage4Btn" class="btn btn-secondary">
+                            View Comma Separated <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Formatted Export -->
+        <section id="section4" class="section">
+            <div class="section-header">
+                <h2>Pending Orders List</h2>
+                <p>Quick-copy pending Order IDs for bulk processing.</p>
+            </div>
+
+            <div class="card" style="padding: 2.5rem; max-width: 800px; margin: 0 auto;">
+                <div class="flex-between" style="margin-bottom: 1.5rem;">
+                    <h3 id="formattedCount">0 Orders Found</h3>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-secondary" id="copyFormattedBtn">
+                            <i class="fa-solid fa-copy"></i> Copy to Clipboard
+                        </button>
+                        <button id="backToPage3Btn" class="btn btn-secondary">
+                            <i class="fa-solid fa-arrow-left"></i> Back
+                        </button>
+                    </div>
+                </div>
+                <textarea id="formattedPendingBox" class="formatted-export-box" readonly></textarea>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- App Components -->
+    <script src="js/pdf-processor.js"></script>
+    <script src="js/excel-exporter.js"></script>
+    <script src="js/packing-master.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
