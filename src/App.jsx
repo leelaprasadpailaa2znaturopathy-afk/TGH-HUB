@@ -53,28 +53,28 @@ const App = () => {
         {
             title: 'Logistics & Scanning',
             items: [
-                { name: 'AWB Multi-Scanner', icon: '🔍', url: '/projects/AWb scanning amazon.html' },
-                { name: 'Master Order Matcher', icon: '⚖️', url: '/projects/Master Order Matcher.html' },
-                { name: 'Master Data Merger', icon: '🧬', url: '/projects/Master Data Merger.html' },
-                { name: 'AWB Data Matcher', icon: '🔄', url: '/projects/AWB Data Matcher.html' },
-                { name: 'Shipping Label Extractor', icon: '🏷️', url: '/projects/shipping-label-extractor/index.html' },
-                { name: 'Barcode Essentials', icon: '║█', url: '/projects/Barcode Essentials.html' },
+                { name: 'AWB Multi-Scanner', icon: '🔍', url: 'projects/AWb scanning amazon.html' },
+                { name: 'Master Order Matcher', icon: '⚖️', url: 'projects/Master Order Matcher.html' },
+                { name: 'Master Data Merger', icon: '🧬', url: 'projects/Master Data Merger.html' },
+                { name: 'AWB Data Matcher', icon: '🔄', url: 'projects/AWB Data Matcher.html' },
+                { name: 'Shipping Label Extractor', icon: '🏷️', url: 'projects/shipping-label-extractor/index.html' },
+                { name: 'Barcode Essentials', icon: '║█', url: 'projects/Barcode Essentials.html' },
             ]
         },
         {
             title: 'Data & Validation',
             items: [
-                { name: 'Address Corrector', icon: '📍', url: '/projects/Address Corrector.html' },
-                { name: 'Discount & Royalty', icon: '📊', url: '/projects/Discount-and-Royalty.html' },
-                { name: 'Website Auditor', icon: '🔎', url: '/projects/Website Auditor.html' },
+                { name: 'Address Corrector', icon: '📍', url: 'projects/Address Corrector.html' },
+                { name: 'Discount & Royalty', icon: '📊', url: 'projects/Discount-and-Royalty.html' },
+                { name: 'Website Auditor', icon: '🔎', url: 'projects/Website Auditor.html' },
             ]
         },
         {
             title: 'Utilities',
             items: [
-                { name: 'PDF Merger', icon: '📑', url: '/projects/TGH_PDF Merger.html' },
-                { name: 'Image PDF Merger', icon: '🖼️', url: '/projects/Merge Multiple Images • Single Page.html' },
-                { name: 'Gmail Generator', icon: '📧', url: '/projects/gmail generator.html' },
+                { name: 'PDF Merger', icon: '📑', url: 'projects/TGH_PDF Merger.html' },
+                { name: 'Image PDF Merger', icon: '🖼️', url: 'projects/Merge Multiple Images • Single Page.html' },
+                { name: 'Gmail Generator', icon: '📧', url: 'projects/gmail generator.html' },
             ]
         }
     ];
