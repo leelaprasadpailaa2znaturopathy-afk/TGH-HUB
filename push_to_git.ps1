@@ -12,7 +12,7 @@ if (!$commitMessage) { $commitMessage = "Manual update $(Get-Date -Format 'yyyy-
 git commit -m "$commitMessage"
 
 # 4. Push to "Live" (GitHub)
-git push origin main
+git push origin main --force
 
 Write-Output "----------------------------------------------------"
 Write-Output "SUCCESS! Your code is now syncing to GitHub."
