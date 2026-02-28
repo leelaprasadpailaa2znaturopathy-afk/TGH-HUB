@@ -24,7 +24,7 @@ const Sidebar = ({ navGroups, currentTool, loadTool, preloadTool, isOpen }) => {
     return (
         <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
             <div className="logo-container">
-                <img src="/tgh-logo.png" alt="TGH Logo" />
+                <img src="tgh-logo.png" alt="TGH Logo" />
                 <h1>TGH HUB</h1>
             </div>
             <nav className="nav-links">
