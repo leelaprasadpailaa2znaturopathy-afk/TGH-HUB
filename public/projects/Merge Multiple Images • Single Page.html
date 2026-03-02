@@ -4,29 +4,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TGH | Integrated PDF Tools</title>
+  <title>Pro Image to PDF | TGH Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet">
   <!-- Scripts -->
-  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <style>
     :root {
       --primary: #6366f1;
-      --primary-light: #818cf8;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.4);
       --accent: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --bg-gradient: linear-gradient(135deg, #090e1a 0%, #1e1b4b 100%);
+      --bg-dark: #0f172a;
+      --bg-gradient: radial-gradient(circle at top right, #1e1b4b, #0f172a 60%);
       --glass-bg: rgba(255, 255, 255, 0.03);
-      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-border: rgba(255, 255, 255, 0.08);
       --text-main: #f8fafc;
       --text-dim: #94a3b8;
+      --card-gradient: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
     }
 
     * {
@@ -37,212 +37,387 @@
     }
 
     body {
-      background: var(--bg-gradient);
+      background: var(--bg-dark);
+      background-image: var(--bg-gradient);
       color: var(--text-main);
       min-height: 100vh;
-      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 4rem 2rem;
       overflow-x: hidden;
     }
 
     .container {
+      width: 100%;
       max-width: 1100px;
-      margin: 0 auto;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .header {
       text-align: center;
-      margin-bottom: 3rem;
+      margin-bottom: 4rem;
     }
 
     .header h1 {
       font-family: 'Outfit', sans-serif;
-      font-size: 2.75rem;
+      font-size: 3.5rem;
       font-weight: 800;
-      background: linear-gradient(to right, #fff, var(--primary-light));
+      letter-spacing: -0.02em;
+      background: linear-gradient(to bottom, #fff, #94a3b8);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .header p {
+      color: var(--text-dim);
+      font-size: 1.1rem;
+      font-weight: 400;
     }
 
     .glass-card {
       background: var(--glass-bg);
-      backdrop-filter: blur(20px);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      transition: 0.3s;
+      border-radius: 32px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
     }
 
-    .section-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: var(--text-main);
-    }
-
-    .btn {
-      padding: 0.75rem 1.5rem;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.95rem;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background: var(--primary-light);
-      transform: translateY(-2px);
-    }
-
-    .btn-ghost {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      color: var(--text-main);
-    }
-
-    .btn-ghost:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    .btn-danger {
-      background: rgba(239, 68, 68, 0.2);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #f87171;
-    }
-
-    .btn-danger:hover {
-      background: var(--danger);
-      color: white;
-    }
-
-    .btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
     }
 
     .toolbar {
       display: flex;
       flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 2rem;
+      gap: 1.2rem;
+      margin-bottom: 2.5rem;
       align-items: center;
     }
 
-    input[type="text"],
-    select {
-      background: rgba(15, 23, 42, 0.6);
+    .btn {
+      padding: 0.8rem 1.6rem;
+      border-radius: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      user-select: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 15px var(--primary-glow);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px var(--primary-glow);
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--glass-border);
+      color: var(--text-main);
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: var(--danger);
+      color: white;
+      border-color: var(--danger);
+    }
+
+    .btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      filter: grayscale(1);
+    }
+
+    .search-box {
+      background: rgba(0, 0, 0, 0.2);
       border: 1px solid var(--glass-border);
-      border-radius: 10px;
-      padding: 0.6rem 1rem;
+      border-radius: 14px;
+      padding: 0.8rem 1.2rem;
       color: white;
       outline: none;
+      width: 240px;
+      transition: all 0.3s;
+    }
+
+    .search-box:focus {
+      border-color: var(--primary);
+      background: rgba(0, 0, 0, 0.3);
+      width: 280px;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding: 0 0.5rem;
+    }
+
+    .stats {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    .stats span {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .file-grid-container {
+      max-height: 550px;
+      overflow-y: auto;
+      margin-bottom: 2rem;
+      padding-right: 15px;
+      scrollbar-gutter: stable;
     }
 
     .file-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 1.5rem;
+      min-height: 100px;
     }
 
     .file-card {
-      background: rgba(255, 255, 255, 0.02);
+      background: var(--card-gradient);
       border: 1px solid var(--glass-border);
-      border-radius: 16px;
+      border-radius: 20px;
       padding: 1rem;
       text-align: center;
       position: relative;
-      transition: 0.3s;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s, background 0.3s, box-shadow 0.3s;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .file-card:active {
+      cursor: grabbing;
+    }
+
+    .file-card.dragging {
+      opacity: 0.2;
+      transform: scale(0.9);
+      border: 2px dashed var(--primary);
     }
 
     .file-card:hover {
-      transform: translateY(-5px);
-      background: rgba(255, 255, 255, 0.05);
+      transform: translateY(-8px);
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
     }
 
     .file-card.selected {
       border-color: var(--primary);
-      background: rgba(99, 102, 241, 0.1);
+      background: rgba(99, 102, 241, 0.15);
+      box-shadow: 0 0 0 2px var(--primary);
     }
 
     .file-thumb {
       width: 100%;
-      height: 100px;
+      aspect-ratio: 1;
       object-fit: cover;
-      border-radius: 8px;
-      margin-bottom: 0.75rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
       background: #0f172a;
+      pointer-events: none;
     }
 
     .file-name {
-      font-size: 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 500;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      color: var(--text-main);
+      margin-bottom: 0.25rem;
+    }
+
+    .file-size {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
       color: var(--text-dim);
     }
 
-    .checkbox-overlay {
+    /* Individual selection toggle circle */
+    .selection-indicator {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-    }
-
-    .status-bar {
-      background: rgba(0, 0, 0, 0.2);
-      padding: 1rem;
-      border-radius: 12px;
-      margin: 1rem 0;
-      font-size: 0.85rem;
-      color: var(--text-dim);
+      top: 12px;
+      right: 12px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid rgba(255, 255, 255, 0.3);
       display: flex;
-      justify-content: space-between;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+      z-index: 2;
     }
 
-    .preview-pane {
-      margin-top: 2rem;
-      padding: 2rem;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 16px;
-      min-height: 100px;
+    .file-card.selected .selection-indicator {
+      background: var(--primary);
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    .selection-indicator::after {
+      content: '✓';
+      color: white;
+      font-size: 14px;
+      font-weight: 800;
+      display: none;
+    }
+
+    .file-card.selected .selection-indicator::after {
+      display: block;
+    }
+
+    .remove-file {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: rgba(239, 68, 68, 0.1);
+      border: none;
+      color: #f87171;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: 0.3s;
+      z-index: 2;
+    }
+
+    .file-card:hover .remove-file {
+      opacity: 1;
+    }
+
+    .remove-file:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .action-panel {
+      border-top: 1px solid var(--glass-border);
+      padding-top: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .convert-btn {
+      padding: 1.2rem 4rem;
+      font-size: 1.15rem;
+      border-radius: 18px;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 6rem 2rem;
       text-align: center;
+      color: var(--text-dim);
+      border: 2px dashed var(--glass-border);
+      border-radius: 32px;
+      background: rgba(255, 255, 255, 0.015);
+      transition: 0.4s;
     }
 
-    .preview-pane img {
-      max-width: 100%;
-      max-height: 400px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    .empty-state:hover {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: scale(1.005);
     }
 
-    .note {
-      border-left: 4px solid var(--warning);
-      background: rgba(245, 158, 11, 0.05);
-      padding: 1rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      margin-top: 1rem;
+    .empty-state h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+
+    .empty-state p {
+      max-width: 440px;
+      margin: 0 auto;
+      line-height: 1.6;
+      font-size: 1rem;
+    }
+
+    .animate-float {
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0);
+      }
+
+      50% {
+        transform: translateY(-15px) rotate(2deg);
+      }
     }
 
     ::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
     }
 
     ::-webkit-scrollbar-thumb {
@@ -250,8 +425,26 @@
       border-radius: 10px;
     }
 
-    .hidden {
-      display: none;
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    @media (max-width: 640px) {
+      .header h1 {
+        font-size: 2.5rem;
+      }
+
+      .toolbar {
+        justify-content: center;
+      }
+
+      .search-box {
+        width: 100%;
+      }
+
+      .search-box:focus {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -259,159 +452,174 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>Integrated PDF Suite</h1>
-      <p>All-in-one client-side file management and PDF utility lab</p>
+      <h1>Pro Image to PDF</h1>
+      <p>Luxury studio-grade conversion for your visual assets.</p>
     </div>
 
-    <!-- File Explorer -->
     <div class="glass-card">
-      <div class="section-title">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-        </svg>
-        Memory Explorer
-      </div>
-
       <div class="toolbar">
         <button class="btn btn-primary" onclick="document.getElementById('explorerInput').click()">
-          <span>Add Documents</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          <span>Add Images</span>
         </button>
-        <input type="file" id="explorerInput" multiple accept="*/*" class="hidden">
-        <button class="btn btn-danger" id="clearExplorerBtn" disabled>Clear Library</button>
-        <button class="btn btn-ghost" id="bulkZipBtn" disabled>Selected to ZIP</button>
+        <input type="file" id="explorerInput" multiple accept="image/*" class="hidden" style="display:none">
+
+        <button class="btn btn-ghost" id="selectAllBtn" onclick="toggleSelectAll()" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <span id="selectAllText">Select All</span>
+        </button>
+
+        <button class="btn btn-danger" id="clearBtn" onclick="clearLibrary()" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+          <span>Clear Studio</span>
+        </button>
 
         <div style="flex-grow: 1;"></div>
 
-        <input type="text" id="searchInput" placeholder="Search library..." oninput="renderFiles()">
-        <select id="sortSelect" onchange="renderFiles()">
-          <option value="name-asc">Name (A-Z)</option>
-          <option value="size-desc">Largest First</option>
-          <option value="type-asc">Category</option>
-        </select>
+        <input type="text" id="searchInput" class="search-box" placeholder="Search studio..." oninput="renderFiles()">
       </div>
 
-      <div class="status-bar" id="explorerStatus">0 items loaded • 0 MB total</div>
-
-      <div id="fileGrid" class="file-grid"></div>
-
-      <div class="preview-pane" id="previewPane">
-        <p style="color:var(--text-dim)">Select an item to preview details</p>
+      <div class="status-bar">
+        <div class="stats" id="explorerStatus"><span>0</span> Images Loaded</div>
+        <div class="stats" id="selectionStatus"><span>0</span> Selected</div>
       </div>
-    </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-      <!-- Images to PDF -->
-      <div class="glass-card">
-        <div class="section-title">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
-          </svg>
-          Images → PDF
+      <div class="file-grid-container" id="gridContainer">
+        <div id="fileGrid" class="file-grid">
+          <!-- Dynamically populated -->
         </div>
-        <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1.5rem;">Select one or more images from the
-          explorer to convert them into a single PDF document.</p>
-        <button class="btn btn-primary" id="convertImagesBtn" disabled onclick="convertImagesToPdf()">Create PDF from
-          Selection</button>
       </div>
 
-      <!-- PDF Splitter -->
-      <div class="glass-card">
-        <div class="section-title">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <div class="action-panel">
+        <button class="btn btn-primary convert-btn" id="convertBtn" disabled onclick="convertImagesToPdf()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14 2 14 8 20 8" />
-            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="12" y1="18" x2="12" y2="12" />
+            <polyline points="9 15 12 12 15 15" />
           </svg>
-          PDF Splitter
-        </div>
-        <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
-          <input type="text" id="pageRange" placeholder="e.g. 1, 3-5, all" style="flex: 1;">
-          <button class="btn btn-primary" id="splitPdfBtn" disabled onclick="splitPdf()">Split</button>
-        </div>
-        <p id="splitStatus" style="font-size: 0.85rem; color: var(--text-dim)">Select exactly 1 PDF to begin</p>
+          Generate High-Fidelity PDF
+        </button>
+        <p style="font-size: 0.85rem; color: var(--text-dim);">The PDF will follow the sequence above. Drag cards to
+          reorder your storyboard.</p>
       </div>
-    </div>
-
-    <div class="note">
-      <strong>Production Tip:</strong> All operations are performed strictly in your browser. No files are uploaded to
-      any server. High-fidelity Word conversions require server-side rendering and are not supported in this client-side
-      lab.
     </div>
   </div>
 
+  <template id="emptyStateTemplate">
+    <div class="empty-state">
+      <div class="animate-float" style="margin-bottom: 2.5rem; display: inline-block;">
+        <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="0.7">
+          <rect x="3" y="3" width="18" height="18" rx="5" ry="5" />
+          <circle cx="8.5" cy="8.5" r="1.8" fill="#818cf8" />
+          <path d="M21 15l-5-5-2 2-3-3L3 21" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <h2>Empty Storyboard</h2>
+      <p>Your studio is ready. Drag imagery here or click 'Add Images' to begin crafting your document. You can
+        rearrange items at any time.</p>
+    </div>
+  </template>
+
   <script>
-    const { PDFDocument } = PDFLib;
     const { jsPDF } = window.jspdf;
 
     let explorerFiles = [];
-    let searchInput = document.getElementById('searchInput');
+    let draggedId = null;
+    const searchInput = document.getElementById('searchInput');
 
     function renderFiles() {
       const grid = document.getElementById('fileGrid');
-      grid.innerHTML = '';
+      const term = searchInput.value.toLowerCase();
 
       let list = [...explorerFiles];
-      const term = searchInput.value.toLowerCase();
       if (term) list = list.filter(f => f.name.toLowerCase().includes(term));
 
-      const sort = document.getElementById('sortSelect').value;
-      if (sort === 'name-asc') list.sort((a, b) => a.name.localeCompare(b.name));
-      else if (sort === 'size-desc') list.sort((a, b) => b.size - a.size);
-      else if (sort === 'type-asc') list.sort((a, b) => a.type.localeCompare(b.type));
+      grid.innerHTML = '';
 
-      list.forEach(f => {
+      if (explorerFiles.length === 0) {
+        const template = document.getElementById('emptyStateTemplate');
+        grid.appendChild(template.content.cloneNode(true));
+        updateStatus();
+        return;
+      }
+
+      list.forEach((f) => {
         const card = document.createElement('div');
-        card.className = `file-card \${f.selected ? 'selected' : ''}`;
+        card.className = `file-card ${f.selected ? 'selected' : ''}`;
+        card.draggable = true;
+        card.dataset.id = f.id;
 
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'checkbox-overlay';
-        checkbox.checked = f.selected;
-        checkbox.onclick = (e) => {
-          e.stopPropagation();
+        // Selection Toggle
+        card.onclick = (e) => {
+          // Check if clicking remove button
+          if (e.target.closest('.remove-file')) return;
           toggleSelect(f.id);
         };
-        card.appendChild(checkbox);
 
-        const content = document.createElement('div');
-        content.onclick = () => showPreview(f.id);
+        // Drag and Drop Logic
+        card.ondragstart = (e) => {
+          draggedId = f.id;
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        };
 
-        const isImg = f.type.startsWith('image/');
-        if (isImg) {
-          const img = document.createElement('img');
-          img.src = f.url;
-          img.className = 'file-thumb';
-          img.alt = f.name;
-          content.appendChild(img);
-        } else {
-          const thumbDiv = document.createElement('div');
-          thumbDiv.className = 'file-thumb';
-          thumbDiv.style.display = 'flex';
-          thumbDiv.style.alignItems = 'center';
-          thumbDiv.style.justifyContent = 'center';
-          thumbDiv.style.color = 'var(--primary-light)';
-          thumbDiv.innerHTML = `
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-            </svg>
-          `;
-          content.appendChild(thumbDiv);
-        }
+        card.ondragend = () => {
+          card.classList.remove('dragging');
+          draggedId = null;
+        };
+
+        card.ondragover = (e) => {
+          e.preventDefault();
+          const draggingCard = document.querySelector('.dragging');
+          if (!draggingCard || draggingCard === card) return;
+
+          const fromIndex = explorerFiles.findIndex(x => x.id === draggedId);
+          const toIndex = explorerFiles.findIndex(x => x.id === f.id);
+
+          if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+            const [movedItem] = explorerFiles.splice(fromIndex, 1);
+            explorerFiles.splice(toIndex, 0, movedItem);
+            renderFiles(); // Instant feedback
+          }
+        };
+
+        const indicator = document.createElement('div');
+        indicator.className = 'selection-indicator';
+        card.appendChild(indicator);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-file';
+        removeBtn.innerHTML = '✕';
+        removeBtn.onclick = (e) => {
+          e.stopPropagation();
+          removeFile(f.id);
+        };
+        card.appendChild(removeBtn);
+
+        const img = document.createElement('img');
+        img.src = f.url;
+        img.className = 'file-thumb';
+        img.alt = f.name;
+        card.appendChild(img);
 
         const nameDiv = document.createElement('div');
         nameDiv.className = 'file-name';
         nameDiv.textContent = f.name;
-        content.appendChild(nameDiv);
+        card.appendChild(nameDiv);
 
         const sizeDiv = document.createElement('div');
-        sizeDiv.style.fontSize = '0.65rem';
-        sizeDiv.style.color = 'var(--text-dim)';
-        sizeDiv.textContent = `\${(f.size / 1024).toFixed(1)} KB`;
-        content.appendChild(sizeDiv);
+        sizeDiv.className = 'file-size';
+        sizeDiv.textContent = `${(f.size / 1024).toFixed(1)} KB`;
+        card.appendChild(sizeDiv);
 
-        card.appendChild(content);
         grid.appendChild(card);
       });
 
@@ -424,162 +632,130 @@
       renderFiles();
     }
 
-    function showPreview(id) {
-      const f = explorerFiles.find(x => x.id === id);
-      if (!f) return;
-      const pane = document.getElementById('previewPane');
-      pane.innerHTML = '';
-
-      const stats = document.createElement('div');
-      stats.style.textAlign = 'left';
-      stats.style.fontSize = '0.9rem';
-
-      const row1 = document.createElement('div');
-      row1.style.marginBottom = '1rem';
-      row1.style.borderBottom = '1px solid var(--glass-border)';
-      row1.style.paddingBottom = '0.5rem';
-
-      const label1 = document.createElement('span');
-      label1.style.color = 'var(--primary-light)';
-      label1.style.fontWeight = '700';
-      label1.textContent = 'FILENAME: ';
-      row1.appendChild(label1);
-      row1.appendChild(document.createTextNode(f.name));
-      stats.appendChild(row1);
-
-      const row2 = document.createElement('div');
-      const label2 = document.createElement('span');
-      label2.style.color = 'var(--text-dim)';
-      label2.textContent = 'TYPE: ';
-      row2.appendChild(label2);
-      row2.appendChild(document.createTextNode(f.type));
-      stats.appendChild(row2);
-
-      const row3 = document.createElement('div');
-      const label3 = document.createElement('span');
-      label3.style.color = 'var(--text-dim)';
-      label3.textContent = 'SIZE: ';
-      row3.appendChild(label3);
-      row3.appendChild(document.createTextNode(`\${(f.size / 1024 / 1024).toFixed(2)} MB`));
-      stats.appendChild(row3);
-
-      pane.appendChild(stats);
-
-      if (f.type.startsWith('image/')) {
-        const img = document.createElement('img');
-        img.src = f.url;
-        img.style.marginTop = '20px';
-        pane.appendChild(img);
+    function removeFile(id) {
+      const index = explorerFiles.findIndex(f => f.id === id);
+      if (index > -1) {
+        URL.revokeObjectURL(explorerFiles[index].url);
+        explorerFiles.splice(index, 1);
+        renderFiles();
       }
+    }
+
+    function toggleSelectAll() {
+      if (explorerFiles.length === 0) return;
+      // If all are selected, deselect all. Otherwise, select all.
+      const allSelected = explorerFiles.every(f => f.selected);
+      explorerFiles.forEach(f => f.selected = !allSelected);
+      renderFiles();
+    }
+
+    function clearLibrary() {
+      // Revoke all object URLs to free up memory
+      explorerFiles.forEach(f => {
+        if (f.url) URL.revokeObjectURL(f.url);
+      });
+
+      // Empty the array
+      explorerFiles = [];
+
+      // Refresh the UI
+      renderFiles();
+
+      // Reset search if active
+      if (searchInput) searchInput.value = '';
     }
 
     function updateStatus() {
       const count = explorerFiles.length;
-      const sel = explorerFiles.filter(f => f.selected);
-      const size = (explorerFiles.reduce((s, f) => s + f.size, 0) / 1024 / 1024).toFixed(2);
-      document.getElementById('explorerStatus').textContent = `\${count} items (\${sel.length} selected) • \${size} MB library`;
+      const selCount = explorerFiles.filter(f => f.selected).length;
 
-      document.getElementById('clearExplorerBtn').disabled = count === 0;
-      document.getElementById('bulkZipBtn').disabled = sel.length === 0;
+      document.getElementById('explorerStatus').innerHTML = `<span>${count}</span> Images Loaded`;
+      document.getElementById('selectionStatus').innerHTML = `<span>${selCount}</span> Selected`;
 
-      // Tool button states
-      document.getElementById('convertImagesBtn').disabled = !sel.some(f => f.type.startsWith('image/'));
+      document.getElementById('clearBtn').disabled = count === 0;
+      document.getElementById('convertBtn').disabled = selCount === 0;
 
-      const pdfs = sel.filter(f => f.type === 'application/pdf');
-      document.getElementById('splitPdfBtn').disabled = pdfs.length !== 1;
-      const statusText = pdfs.length === 1 ? `Target: \${pdfs[0].name}` : 'Select exactly 1 PDF to begin';
-      document.getElementById('splitStatus').textContent = statusText;
+      const selectAllBtn = document.getElementById('selectAllBtn');
+      const selectAllText = document.getElementById('selectAllText');
+
+      if (count > 0 && selCount === count) {
+        selectAllText.textContent = 'Deselect All';
+      } else {
+        selectAllText.textContent = 'Select All';
+      }
+      selectAllBtn.disabled = count === 0;
     }
 
     document.getElementById('explorerInput').addEventListener('change', e => {
-      Array.from(e.target.files).forEach((file, idx) => {
-        const id = Date.now() + idx;
+      handleFiles(Array.from(e.target.files));
+      e.target.value = '';
+    });
+
+    function handleFiles(files) {
+      files.forEach((file) => {
+        if (!file.type.startsWith('image/')) return;
+        const id = Math.random().toString(36).substr(2, 9);
         explorerFiles.push({
-          id, name: file.name, size: file.size, type: file.type || 'application/octet-stream',
-          url: URL.createObjectURL(file), file, selected: false
+          id, name: file.name, size: file.size, type: file.type,
+          url: URL.createObjectURL(file), file, selected: true
         });
       });
       renderFiles();
-    });
-
-    document.getElementById('clearExplorerBtn').onclick = () => {
-      explorerFiles.forEach(f => URL.revokeObjectURL(f.url));
-      explorerFiles = [];
-      renderFiles();
-      document.getElementById('previewPane').innerHTML = '<p style="color:var(--text-dim)">Select an item to preview details</p>';
-    };
-
-    document.getElementById('bulkZipBtn').onclick = async () => {
-      const zip = new JSZip();
-      const sel = explorerFiles.filter(f => f.selected);
-      for (const f of sel) {
-        const blob = await fetch(f.url).then(r => r.blob());
-        zip.file(f.name, blob);
-      }
-      zip.generateAsync({ type: 'blob' }).then(content => saveAs(content, 'TGH_Library_Export.zip'));
-    };
+    }
 
     async function convertImagesToPdf() {
-      const sel = explorerFiles.filter(f => f.selected && f.type.startsWith('image/'));
+      const sel = explorerFiles.filter(f => f.selected);
       if (!sel.length) return;
 
-      const pdf = new jsPDF();
-      for (let i = 0; i < sel.length; i++) {
-        const f = sel[i];
-        const dataUrl = await new Promise(resolve => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(f.file);
-        });
+      const btn = document.getElementById('convertBtn');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="animate-float">
+            <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4" />
+        </svg>
+        Compiling PDF...
+      `;
 
-        if (i > 0) pdf.addPage();
-        const props = pdf.getImageProperties(dataUrl);
-        const wp = pdf.internal.pageSize.getWidth();
-        const hp = pdf.internal.pageSize.getHeight();
-        const ratio = Math.min(wp / props.width, hp / props.height);
-        pdf.addImage(dataUrl, 'JPEG', (wp - props.width * ratio) / 2, (hp - props.height * ratio) / 2, props.width * ratio, props.height * ratio);
+      try {
+        const pdf = new jsPDF();
+        for (let i = 0; i < sel.length; i++) {
+          const f = sel[i];
+          const dataUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(f.file);
+          });
+
+          if (i > 0) pdf.addPage();
+          const props = pdf.getImageProperties(dataUrl);
+          const wp = pdf.internal.pageSize.getWidth();
+          const hp = pdf.internal.pageSize.getHeight();
+          const ratio = Math.min(wp / props.width, hp / props.height);
+          const w = props.width * ratio;
+          const h = props.height * ratio;
+          pdf.addImage(dataUrl, 'JPEG', (wp - w) / 2, (hp - h) / 2, w, h);
+        }
+        pdf.save(`TGH_Studio_${Date.now()}.pdf`);
+      } catch (err) {
+        console.error(err);
+        alert('Compiling failed. Please ensure images are valid.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
       }
-      pdf.save(`TGH_Gallary_${Date.now()}.pdf`);
     }
 
-    async function splitPdf() {
-      const target = explorerFiles.find(f => f.selected && f.type === 'application/pdf');
-      if (!target) return;
-
-      const rangeText = document.getElementById('pageRange').value.trim() || 'all';
-      const bytes = await target.file.arrayBuffer();
-      const srcDoc = await PDFDocument.load(bytes);
-      const total = srcDoc.getPageCount();
-      let indices = [];
-
-      if (rangeText.toLowerCase() === 'all') {
-        indices = srcDoc.getPageIndices();
-      } else {
-        rangeText.split(',').forEach(p => {
-          if (p.includes('-')) {
-            const [s, e] = p.split('-').map(Number);
-            for (let i = (s || 1) - 1; i <= (e || total) - 1; i++) if (i >= 0 && i < total) indices.push(i);
-          } else {
-            const n = Number(p) - 1;
-            if (!isNaN(n) && n >= 0 && n < total) indices.push(n);
-          }
-        });
+    // Global Drop Support
+    window.addEventListener('dragover', e => e.preventDefault());
+    window.addEventListener('drop', e => {
+      e.preventDefault();
+      if (draggedId === null && e.dataTransfer.files.length > 0) {
+        handleFiles(Array.from(e.dataTransfer.files));
       }
+    });
 
-      if (!indices.length) return alert('Invalid page range');
-
-      const newDoc = await PDFDocument.create();
-      const pages = await newDoc.copyPages(srcDoc, [...new Set(indices)]);
-      pages.forEach(p => newDoc.addPage(p));
-      const base64 = await newDoc.saveAsBase64({ dataUri: true });
-
-      const a = document.createElement('a');
-      a.href = base64;
-      a.download = `Extracted_${target.name}`;
-      a.click();
-    }
-
-    // Init
+    // Initial render
     renderFiles();
   </script>
 </body>

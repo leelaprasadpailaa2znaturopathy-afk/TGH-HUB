@@ -66,7 +66,6 @@ const App = () => {
             items: [
                 { name: 'Address Corrector', icon: '📍', url: 'projects/Address Corrector.html' },
                 { name: 'Discount & Royalty', icon: '📊', url: 'projects/Discount-and-Royalty.html' },
-                { name: 'Website Auditor', icon: '🔎', url: 'projects/Website Auditor.html' },
             ]
         },
         {
