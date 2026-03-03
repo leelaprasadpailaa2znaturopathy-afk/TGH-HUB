@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Architect Platinum - ChatGPT, Claude & Gemini Suite</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0d0d0d;
+            --bg-sidebar: #000000;
+            --bg-hover: #1a1a1a;
+            --text-main: #ececec;
+            --text-muted: #b4b4b4;
+            --border: rgba(255, 255, 255, 0.1);
+            --gpt-primary: #10a37f;
+            --claude-primary: #d97757;
+            --gemini-primary: #4285f4;
+            --accent: var(--gpt-primary);
+        }
+
+        [data-theme="claude"] {
+            --accent: var(--claude-primary);
+            --bg-dark: #fbf9f4;
+            --bg-sidebar: #f5f2e9;
+            --bg-hover: #ebe7d9;
+            --text-main: #1d1d1b;
+            --text-muted: #666;
+            --border: rgba(0, 0, 0, 0.08);
+        }
+
+        [data-theme="gemini"] {
+            --accent: var(--gemini-primary);
+            --bg-dark: #131314;
+            --bg-sidebar: #1e1f20;
+            --bg-hover: #333537;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            overflow: hidden;
+            transition: background 0.3s;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 1rem;
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .new-chat-btn:hover {
+            background: var(--bg-hover);
+        }
+
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .date-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding: 1rem 0.5rem 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .chat-item {
+            padding: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+            position: relative;
+            transition: background 0.2s;
+            margin-bottom: 2px;
+        }
+
+        .chat-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .chat-item.active {
+            background: var(--bg-hover);
+            font-weight: 500;
+        }
+
+        .chat-item .title {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-item .actions {
+            display: none;
+            gap: 0.4rem;
+        }
+
+        .chat-item:hover .actions {
+            display: flex;
+        }
+
+        .action-icon {
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .action-icon:hover {
+            color: var(--text-main);
+        }
+
+        /* User Menu */
+        .user-menu {
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .profile:hover {
+            background: var(--bg-hover);
+        }
+
+        .avatar-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #8b5cf6, #3b82f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* Main Chat */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Model Selector Top Bar */
+        .top-bar {
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            position: sticky;
+            top: 0;
+            background: var(--bg-dark);
+            z-index: 50;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .model-selector {
+            display: flex;
+            background: var(--bg-hover);
+            padding: 0.25rem;
+            border-radius: 12px;
+            gap: 0.25rem;
+        }
+
+        .model-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 9px;
+            cursor: pointer;
+            color: var(--text-muted);
+            background: transparent;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .model-btn.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .model-btn.active.gpt {
+            background: var(--gpt-primary);
+            color: white;
+        }
+
+        .model-btn.active.claude {
+            background: var(--claude-primary);
+            color: white;
+        }
+
+        .model-btn.active.gemini {
+            background: var(--gemini-primary);
+            color: white;
+        }
+
+        /* Chat Messages */
+        .chat-view {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 200px;
+        }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .empty-logo {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        .empty-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-top: 2rem;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .shortcut-card {
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .shortcut-card:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+        }
+
+        .message-row {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .message-row.user {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .message-content {
+            width: 100%;
+            max-width: 768px;
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .msg-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .msg-body {
+            flex: 1;
+            line-height: 1.7;
+            font-size: 1rem;
+            word-break: break-word;
+        }
+
+        /* Markdown Overrides */
+        .msg-body h1,
+        .msg-body h2,
+        .msg-body h3 {
+            margin: 1.5rem 0 0.8rem;
+        }
+
+        .msg-body pre {
+            background: #000;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            overflow-x: auto;
+            position: relative;
+            border: 1px solid var(--border);
+        }
+
+        .msg-body code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            padding: 0.2rem 0.4rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        pre code {
+            padding: 0;
+            background: transparent;
+        }
+
+        /* Input Area */
+        .input-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            background: linear-gradient(transparent, var(--bg-dark) 40%);
+            pointer-events: none;
+        }
+
+        .input-wrapper {
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            max-width: 768px;
+            pointer-events: all;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: border-color 0.2s;
+            position: relative;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .input-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+
+        textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            resize: none;
+            max-height: 200px;
+            padding: 0.5rem 0;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .input-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 0.5rem;
+        }
+
+        .utility-btns {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .util-btn {
+            padding: 0.4rem 0.6rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .util-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .send-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #fff;
+            color: #000;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            transition: all 0.2s;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.2;
+            transform: scale(0.9);
+            cursor: not-allowed;
+        }
+
+        .send-btn.gen {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Animations */
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 16px;
+            background: var(--accent);
+            margin-left: 4px;
+            animation: blink 0.8s infinite;
+            vertical-align: middle;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                transform: translateX(-100%);
+                width: 100%;
+                height: 100%;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <button class="new-chat-btn" onclick="startNewChat()">
+                <span>New chat</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+        </div>
+        <nav class="chat-list" id="chatList">
+            <div class="date-label">Recent</div>
+            <!-- History items inject -->
+        </nav>
+        <div class="user-menu">
+            <div class="profile">
+                <div class="avatar-circle">UA</div>
+                <div class="info" style="flex: 1">
+                    <p style="font-size: 0.9rem; font-weight: 600">Upgrade Plan</p>
+                    <p style="font-size: 0.75rem; color: var(--text-muted)">Architect Platinum</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-container">
+        <header class="top-bar">
+            <div class="model-selector">
+                <button class="model-btn active gpt" onclick="setModel('gpt')">
+                    ChatGPT 4o
+                </button>
+                <button class="model-btn claude" onclick="setModel('claude')">
+                    Claude 3.5
+                </button>
+                <button class="model-btn gemini" onclick="setModel('gemini')">
+                    Gemini 1.5
+                </button>
+            </div>
+        </header>
+
+        <div class="chat-view" id="chatView">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-logo" id="activeLogo">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                </div>
+                <h1 class="empty-title">How can I help you today?</h1>
+                <div class="shortcut-grid">
+                    <div class="shortcut-card" onclick="setInput('Help me architect an enterprise React codebase')">
+                        <p style="font-weight: 600; font-size: 0.9rem">Software Design</p>
+                        <p style="font-size: 0.8rem; color: var(--text-muted)">Architecture for scaling production apps
+                        </p>
+                    </div>
+                    <div class="shortcut-card" onclick="setInput('Write a professional audit for this code block...')">
+                        <p style="font-weight: 600; font-size: 0.9rem">Security Audit</p>
+                        <p style="font-size: 0.8rem; color: var(--text-muted)">Find vulnerabilities and performance gaps
+                        </p>
+                    </div>
+                    <div class="shortcut-card" onclick="setInput('Generate a complex SQL query for analytics...')">
+                        <p style="font-weight: 600; font-size: 0.9rem">Data Engineering</p>
+                        <p style="font-size: 0.8rem; color: var(--text-muted)">Complex joins and windowing functions</p>
+                    </div>
+                    <div class="shortcut-card" onclick="setInput('Explain quantum computing like I am 5 years old')">
+                        <p style="font-weight: 600; font-size: 0.9rem">Concept Explanation</p>
+                        <p style="font-size: 0.8rem; color: var(--text-muted)">Simplify complex scientific topics</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Messages go here -->
+        </div>
+
+        <div class="input-container">
+            <div class="input-wrapper">
+                <div class="input-row">
+                    <textarea id="userInput" placeholder="Message AI Architect..." rows="1"
+                        oninput="autoResize(this)"></textarea>
+                </div>
+                <div class="input-actions">
+                    <div class="utility-btns">
+                        <button class="util-btn" onclick="triggerFile()"><svg width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48">
+                                </path>
+                            </svg> Attach</button>
+                        <button class="util-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg> Search</button>
+                    </div>
+                    <button class="send-btn" id="sendBtn" onclick="handleSend()" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="19" x2="12" y2="5"></line>
+                            <polyline points="5 12 12 5 19 12"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const chatView = document.getElementById('chatView');
+        const emptyState = document.getElementById('emptyState');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatList = document.getElementById('chatList');
+
+        let currentModel = 'gpt';
+        let isGenerating = false;
+        let shouldStop = false;
+        let currentChatId = null;
+        let conversations = JSON.parse(localStorage.getItem('ai_conversations') || '{}');
+
+        marked.setOptions({ breaks: true, gfm: true });
+
+        // Initialize UI
+        renderHistory();
+
+        function setModel(model) {
+            currentModel = model;
+            document.body.setAttribute('data-theme', model);
+            document.querySelectorAll('.model-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.classList.contains(model)) btn.classList.add('active');
+            });
+            updateEmptyStateColor();
+        }
+
+        function updateEmptyStateColor() {
+            const logo = document.getElementById('activeLogo');
+            const colors = { gpt: '#10a37f', claude: '#d97757', gemini: '#4285f4' };
+            logo.style.color = colors[currentModel];
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+            sendBtn.disabled = !textarea.value.trim();
+        }
+
+        function setInput(text) {
+            userInput.value = text;
+            autoResize(userInput);
+            userInput.focus();
+        }
+
+        function startNewChat() {
+            currentChatId = null;
+            chatView.innerHTML = '';
+            chatView.appendChild(emptyState);
+            emptyState.style.display = 'flex';
+            userInput.value = '';
+            autoResize(userInput);
+            renderHistory();
+        }
+
+        async function handleSend() {
+            if (isGenerating) {
+                shouldStop = true;
+                return;
+            }
+
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            if (!currentChatId) {
+                currentChatId = 'chat_' + Date.now();
+                conversations[currentChatId] = { title: text.substring(0, 30), messages: [], model: currentModel };
+            }
+
+            emptyState.style.display = 'none';
+            addMessage('user', text);
+            userInput.value = '';
+            autoResize(userInput);
+
+            isGenerating = true;
+            toggleSendMode(true);
+
+            const aiRow = addMessage('ai', '', true);
+            const response = generateAIResponse(text);
+            await streamOutput(aiRow.querySelector('.msg-body'), response);
+
+            isGenerating = false;
+            shouldStop = false;
+            toggleSendMode(false);
+
+            saveConversation(currentChatId, text, response);
+            renderHistory();
+        }
+
+        function toggleSendMode(generating) {
+            sendBtn.innerHTML = generating
+                ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"></rect></svg>'
+                : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>';
+            sendBtn.classList.toggle('gen', generating);
+            sendBtn.disabled = false;
+        }
+
+        function addMessage(role, content, isThinking = false) {
+            const row = document.createElement('div');
+            row.className = `message-row ${role}`;
+
+            const avatarColor = role === 'user' ? '#8b5cf6' :
+                currentModel === 'gpt' ? '#10a37f' :
+                    currentModel === 'claude' ? '#d97757' : '#4285f4';
+
+            row.innerHTML = `
+                <div class="message-content">
+                    <div class="msg-avatar" style="background: ${avatarColor}">
+                        ${role === 'user' ? 'U' : currentModel.toUpperCase().charAt(0)}
+                    </div>
+                    <div class="msg-body">${isThinking ? '<span class="cursor"></span>' : marked.parse(content)}</div>
+                </div>
+            `;
+
+            chatView.appendChild(row);
+            chatView.scrollTop = chatView.scrollHeight;
+            return row;
+        }
+
+        async function streamOutput(element, text) {
+            element.innerHTML = '';
+            let current = '';
+            const words = text.split(' ');
+
+            for (let word of words) {
+                if (shouldStop) break;
+                current += word + ' ';
+                element.innerHTML = marked.parse(current) + '<span class="cursor"></span>';
+
+                chatView.scrollTop = chatView.scrollHeight;
+                await new Promise(r => setTimeout(r, 15 + Math.random() * 20));
+            }
+            element.querySelector('.cursor')?.remove();
+            element.innerHTML = marked.parse(current);
+        }
+
+        function generateAIResponse(input) {
+            const query = input.toLowerCase();
+            const styles = {
+                gpt: { persona: "ChatGPT 4o", style: "Direct, helpful, and logical." },
+                claude: { persona: "Claude 3.5 Sonnet", style: "Thoughtful, nuanced, and safe." },
+                gemini: { persona: "Gemini 1.5 Pro", style: "Creative, vast knowledge integration, and multi-modal focused." }
+            };
+
+            const config = styles[currentModel];
+            let response = `I am **${config.persona}**. My current personality is **${config.style}**.\n\n`;
+
+            if (query.includes('architect') || query.includes('code')) {
+                response += "## Technical Solution\nTo achieve this, I recommend a modular architecture using the following pattern:\n\n```javascript\n// Optimization Pattern\nfunction handleMassiveStream(data) {\n  return data.pipeThrough(new CompressionStream('gzip'));\n}\n```\n\n- **Scalability**: High\n- **Complexity**: Moderate\n- **Security**: Hardened";
+            } else {
+                response += `Based on your query "${input}", I have analyzed the logical implications and synthesized a response using high-density neural context. 
+
+Unlike other models, I prioritize **analytical precision** during this sesson.
+
+Is there a specific detail you'd like me to expand on?`;
+            }
+
+            return response;
+        }
+
+        let historyScrollTop = 0;
+
+        function renderHistory() {
+            historyScrollTop = chatList.scrollTop;
+            chatList.innerHTML = '';
+
+            const grouped = { Today: [], Earlier: [] };
+            const today = new Date().toDateString();
+
+            Object.keys(conversations).sort().reverse().forEach(id => {
+                const parts = id.split('_');
+                const date = parts.length > 1 ? new Date(parseInt(parts[1])).toDateString() : 'Earlier';
+                if (date === today) grouped.Today.push(id);
+                else grouped.Earlier.push(id);
+            });
+
+            ['Today', 'Earlier'].forEach(bucket => {
+                if (grouped[bucket].length > 0) {
+                    const label = document.createElement('div');
+                    label.className = 'date-label';
+                    label.textContent = bucket;
+                    chatList.appendChild(label);
+
+                    grouped[bucket].forEach(id => {
+                        const chat = conversations[id];
+                        const item = document.createElement('div');
+                        item.className = `chat-item ${id === currentChatId ? 'active' : ''}`;
+                        item.innerHTML = `
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            <span class="title">${chat.title}</span>
+                            <div class="actions">
+                                <svg class="action-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" onclick="deleteChat('${id}', event)"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </div>
+                        `;
+                        item.onclick = () => loadChat(id);
+                        chatList.appendChild(item);
+                    });
+                }
+            });
+            chatList.scrollTop = historyScrollTop;
+        }
+
+        async function handleSend() {
+            if (isGenerating) {
+                shouldStop = true;
+                return;
+            }
+
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            if (!currentChatId) {
+                currentChatId = 'chat_' + Date.now();
+                conversations[currentChatId] = {
+                    title: text.substring(0, 30),
+                    messages: [],
+                    model: currentModel,
+                    id: currentChatId
+                };
+            }
+
+            emptyState.style.display = 'none';
+            addMessage('user', text);
+            userInput.value = '';
+            autoResize(userInput);
+
+            isGenerating = true;
+            toggleSendMode(true);
+
+            const aiRow = addMessage('ai', '', true);
+            await new Promise(r => setTimeout(r, 600));
+
+            const response = generateAIResponse(text, currentChatId);
+            await streamOutput(aiRow.querySelector('.msg-body'), response);
+
+            isGenerating = false;
+            shouldStop = false;
+            toggleSendMode(false);
+
+            saveConversation(currentChatId, text, response);
+            renderHistory();
+        }
+
+        function generateAIResponse(input, chatId) {
+            const query = input.toLowerCase();
+            const history = conversations[chatId]?.messages || [];
+
+            const isFollowUp = history.length > 0;
+            const lastMsg = isFollowUp ? history[history.length - 1].content : "";
+
+            const models = {
+                gpt: { name: "GPT-4o", tone: "Analytical & Creative", intro: "As an advanced GPT-4 model, I've processed your instructions through my reasoning engine." },
+                claude: { name: "Claude 3.5 Sonnet", tone: "Nuanced & Ethical", intro: "I am Claude, designed by Anthropic. I'll provide a thorough, context-aware analysis of your request." },
+                gemini: { name: "Gemini 1.5 Pro", tone: "Expansive & Logical", intro: "I am Gemini, integrated with Google's latest multi-modal knowledge graph. Here is what I found." }
+            };
+
+            const mod = models[currentModel];
+            let response = `### 💎 Intelligence Model: ${mod.name}\n${mod.intro}\n\n`;
+
+            if (isFollowUp) {
+                const shortContext = lastMsg.length > 30 ? lastMsg.substring(0, 30) + '...' : lastMsg;
+                response += `Regarding your follow-up on **"${shortContext}"**: \n\nI have cross-referenced the previous context with your new request. `;
+            }
+
+            if (query.match(/code|javascript|react|python|debug|error|engineer/)) {
+                response += "## Technical Solution\n\n```markdown\n# ARCHITECTURAL DECISION\nMaintain state in a singleton pattern if global access is required, otherwise use localized hooks for Big O efficiency.\n```\n\n- **Project Scope**: Optimized for Scalability\n- **Big O Complexity**: O(log n)\n- **Recommendation**: Deploy to Edge Functions\n\nWould you like me to generate the full unit test suite for this implementation?";
+            } else if (query.match(/summarize|audit|report|data/)) {
+                response += "## 📊 Detailed Intelligence Report\n\n| Component | Status | Risk Level | Recommendation |\n| :--- | :--- | :--- | :--- |\n| Logic Gate | Operational | Low | Regular Sync |\n| Memory Buffer | Optimized | Minimal | None |\n| API Bridge | Throttled | Medium | Upgrade Token |\n\n**Verdict**: The system is stable but requires immediate scaling of the I/O layer.";
+            } else {
+                response += `I've synthesized a response based on your input. My logic indicates that your focus on **"${input.split(' ').slice(-1)}"** is the core variable here.
+
+**Key Insights:**
+1. **Holistic View**: Your request aligns with industry standards for ${currentModel === 'gpt' ? 'AI alignment' : 'structural integrity'}.
+2. **Efficiency**: I've bypassed redundant processing nodes to provide this high-density result.
+3. **Execution**: Follow the outlined steps for 99th percentile quality.
+
+*Should I refine any specific part of this analysis?*`;
+            }
+
+            return response;
+        }
+
+        function saveConversation(id, userMsg, aiMsg) {
+            conversations[id].messages.push({ role: 'user', content: userMsg });
+            conversations[id].messages.push({ role: 'ai', content: aiMsg });
+            localStorage.setItem('ai_conversations', JSON.stringify(conversations));
+        }
+
+        function loadChat(id) {
+            currentChatId = id;
+            emptyState.style.display = 'none';
+            chatView.innerHTML = '';
+            conversations[id].messages.forEach(msg => {
+                addMessage(msg.role, msg.content);
+            });
+            setModel(conversations[id].model || 'gpt');
+            renderHistory();
+        }
+
+        function deleteChat(id, e) {
+            e.stopPropagation();
+            if (confirm('Delete this conversation?')) {
+                delete conversations[id];
+                localStorage.setItem('ai_conversations', JSON.stringify(conversations));
+                if (currentChatId === id) startNewChat();
+                else renderHistory();
+            }
+        }
+
+        function triggerFile() {
+            alert("File Attachment UI: In a real app, this would open a file picker and extract text via OCR or PDF parsing.");
+        }
+
+        userInput.focus();
+    </script>
+</body>
+
+</html>

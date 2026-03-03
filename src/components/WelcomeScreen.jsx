@@ -33,13 +33,15 @@ const WelcomeScreen = ({ navGroups, loadTool }) => {
             </div>
 
             <div className="grid-preview">
-                {navGroups[0].items.slice(0, 3).map((item, idx) => (
-                    <div key={idx} className="tool-card" onClick={() => loadTool(item.url, item.name)}>
-                        <span className="icon">{item.icon}</span>
-                        <h3>{item.name}</h3>
-                        <p>Specialized tool for {item.name.toLowerCase()}</p>
-                    </div>
-                ))}
+                {navGroups.map(group =>
+                    group.items.slice(0, 2).map((item, idx) => (
+                        <div key={`${group.title}-${idx}`} className="tool-card" onClick={() => loadTool(item.url, item.name)}>
+                            <span className="icon">{item.icon}</span>
+                            <h3>{item.name}</h3>
+                            <p>Specialized {group.title.toLowerCase()} tool</p>
+                        </div>
+                    ))
+                )}
             </div>
         </div>
     );

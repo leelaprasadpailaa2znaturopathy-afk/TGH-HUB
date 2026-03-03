@@ -69,8 +69,9 @@ const App = () => {
             ]
         },
         {
-            title: 'Utilities',
+            title: 'AI & Productivity',
             items: [
+
                 { name: 'PDF Merger', icon: '📑', url: 'projects/TGH_PDF Merger.html' },
                 { name: 'Image PDF Merger', icon: '🖼️', url: 'projects/Merge Multiple Images • Single Page.html' },
                 { name: 'Gmail Generator', icon: '📧', url: 'projects/gmail generator.html' },
@@ -79,12 +80,13 @@ const App = () => {
     ];
 
     return (
-        <div className="app-container">
+        <div className={`app-container ${sidebarOpen ? 'sidebar-open' : ''}`}>
             <Sidebar
                 navGroups={navGroups}
                 currentTool={currentTool}
                 loadTool={loadTool}
                 preloadTool={preloadTool}
+                isOpen={sidebarOpen}
             />
 
             <main className="main-content">
@@ -92,6 +94,7 @@ const App = () => {
                     currentTitle={currentTool.title}
                     theme={theme}
                     toggleTheme={toggleTheme}
+                    toggleSidebar={toggleSidebar}
                 />
 
                 <div className="content-wrapper">

@@ -6,6 +6,10 @@
 }
 
 .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: calc(-1 * var(--sidebar-width));
     width: var(--sidebar-width);
     background: var(--sidebar-bg);
     backdrop-filter: blur(30px);
@@ -13,7 +17,13 @@
     display: flex;
     flex-direction: column;
     padding: 2rem 0;
-    z-index: 10;
+    z-index: 1000;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.open {
+    left: 0;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
 }
 
 .logo-container {
@@ -106,6 +116,15 @@
     color: #fff;
 }
 
+.app-container.sidebar-open::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+}
+
 .main-content {
     flex: 1;
     display: flex;
@@ -118,10 +137,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 2rem;
+    padding: 0 1.5rem;
     background: var(--glass-bg);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--glass-border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .header-title {
@@ -330,102 +352,39 @@
     }
 
     .sidebar {
-        position: fixed;
-        left: -100%;
-        top: 0;
-        bottom: 0;
-        width: 80%;
-        max-width: 300px;
-        transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 100;
-        background: var(--sidebar-bg);
-        border-right: 1px solid var(--glass-border);
-    }
-
-    .sidebar.open {
-        left: 0;
-        box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-    }
-
-    .menu-toggle {
-        display: block !important;
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        color: var(--text-main);
-        padding: 0.5rem;
-        border-radius: 8px;
-        cursor: pointer;
-        margin-right: 1rem;
-        font-size: 1.2rem;
-    }
-
-    .app-container.sidebar-open::after {
-        content: "";
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
-        z-index: 90;
-    }
-
-    .logo-container {
-        padding: 0 1rem 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .nav-links {
-        display: block;
-        /* Back to vertical in mobile sidebar */
-        overflow-y: auto;
-    }
-
-    .nav-group {
-        margin-bottom: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .nav-group-title {
-        display: none;
-    }
-
-    .nav-item {
-        margin-bottom: 0;
-        padding: 0.5rem 0.75rem;
-        white-space: nowrap;
-    }
-
-    .nav-item.active {
-        border-left: none;
-        border-bottom: 3px solid var(--primary);
-    }
-
-    .header-left {
-        display: flex;
-        align-items: center;
-    }
-
-    .main-content {
-        height: 100vh;
-    }
-
-    .header {
-        padding: 0 1rem;
+        width: 85%;
+        max-width: 320px;
     }
 
     .welcome-header h1 {
-        font-size: 2rem;
+        font-size: 2.2rem;
+    }
+
+    .welcome-header p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
     }
 
     .stats-grid {
         grid-template-columns: 1fr;
-        padding: 0 1rem;
+        padding: 0;
     }
 
     .grid-preview {
         grid-template-columns: 1fr;
-        padding: 0 1rem;
+        padding: 0;
+    }
+
+    .header-title {
+        font-size: 0.9rem;
+        max-width: 150px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .refresh-btn {
+        display: none;
     }
 }
 
@@ -435,5 +394,24 @@
 }
 
 .menu-toggle {
-    display: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-right: 1rem;
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.menu-toggle:hover {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 12px var(--primary-glow);
+    border-color: var(--primary);
 }
