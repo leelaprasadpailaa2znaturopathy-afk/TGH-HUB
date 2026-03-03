@@ -303,8 +303,8 @@
     </div>
 
     <div class="input-group">
-      <label for="mobile">Mobile Number (Last 5 digits used)</label>
-      <input type="tel" id="mobile" placeholder="E.g. 9876543210">
+      <label for="mobile">Mobile Number (Auto-takes last 5 digits)</label>
+      <input type="tel" id="mobile" placeholder="E.g. 9876543210 (Full Number)">
     </div>
 
     <div class="input-group">
@@ -368,9 +368,9 @@
       const mobile = document.getElementById('mobile').value.trim();
       const domain = document.getElementById('domainSelect').value;
 
-      // Improved validation
-      if (!nameInput || !/^\d{5,}$/.test(mobile)) {
-        showToast('Please enter name and 5+ digit numeric mobile');
+      // Improved validation: Ensure name and at least 5 digits in mobile
+      if (!nameInput || !/\d{5,}/.test(mobile)) {
+        showToast('Please enter name and mobile with at least 5 digits');
         return;
       }
 
@@ -475,7 +475,11 @@
         sessionStorage.removeItem('noemailEmails');
         sessionStorage.removeItem('nogmailEmails');
         updateCount();
-        updateHistory();
+        updateHistory(); // This will now correctly clear the list UI
+
+        // Also hide result card if it's showing deleted data
+        document.getElementById('resultCard').style.display = 'none';
+
         showToast("History cleared & backed up");
       }
     }
